@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Déjàvis - {{title}}</title>
+  
+  <!-- libraries -->
+  <script src="/javascripts/jquery-1.4.2.min.js"></script>
+  <script src="/javascripts/jquery.mousewheel.js"></script>
+  <script src="/javascripts/underscore.js"></script>
+  <script src="/javascripts/unveil.js"></script>
+  
+  {{#scripts}}
+    <script src="/files/{{name}}/{{.}}"></script>
+  {{/scripts}}
+  
+  <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <h1>{{title}}</h1>
+  <div id="canvas">
+    
+  </div>
+  <div id="info">
+    <h3>About</h3>
+    <p><strong>Unveil.js</strong> provides a simple abstraction layer for visualizations to ease
+    the process of creating re-usable charts. To accomplish this, a data-driven methodology is used.
+    </p>
+    
+    <h3>Data used</h3>
+    
+    <a href="../fixtures/artists.js">Artists</a> pulled from Freebase.com translated into the Unveil.js Collection format.
+    
+    <h3>Code</h3>
+    
+    <p>Source Code is available at <a href="http://github.com/michael/unveil">Github</a></p>
+    
+    <div class="notice">A <a href="http://quasipartikel.at">Quasipartikel</a> production</div>
+  </div>
+</body>
+</html>

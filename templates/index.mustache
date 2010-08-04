@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Déjàvis</title>
+  
+  <!-- libraries -->
+  <script src="/javascripts/jquery-1.4.2.js"></script>
+  <script src="/javascripts/jquery.mousewheel.js"></script>
+  <script src="/javascripts/underscore.js"></script>
+  <script src="/javascripts/unveil.js"></script>
+  
+  <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+</head>
+<body>
+  <h1>Available Visualizations</h1>
+  
+  <ul>
+  {{#visualizations}}
+    <li><a href="/{{name}}">{{title}}</a></li>
+  {{/visualizations}}
+  </ul>
+
+</body>
+</html>
