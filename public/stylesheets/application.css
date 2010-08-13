@@ -8,7 +8,7 @@ body {background: #efefef; font-family: 'Helvetica Neue', 'Arial'; color: #777; 
 a {color: #777;}
 a:hover {color: #000;}
 
-
+.clear { clear: both; }
 
 /*
 -----------------------------------------

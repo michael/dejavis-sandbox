@@ -3,12 +3,7 @@
 <head>
   <title>Déjàvis - {{title}}</title>
   
-  <!-- libraries -->
-  <script src="/javascripts/jquery-1.4.2.min.js"></script>
-  <script src="/javascripts/jquery.mousewheel.js"></script>
-  <script src="/javascripts/underscore.js"></script>
-  
-  <!-- applications -->
+  <!-- loads scripts specified in manifest.json -->
   {{#scripts}}
   <script src="/files/{{name}}/{{.}}"></script>
   {{/scripts}}
@@ -34,17 +29,17 @@
       <div class="meta-group">
         <div class="label">Links</div>
         <div class="value"><a href="{{github_url}}">Source</a></div>
-        <br style="clear: both"/>
+        <br class="clear"/>
         <div class="value"></div>
-        <br style="clear: both"/>
+        <br class="clear"/>
       </div>
       <div class="meta-group">
         <div class="label">Author</div>
         <div class="value"><a href="{{author_homepage}}">{{author}}</a></div>
-        <br style="clear: both"/>
+        <br class="clear"/>
         <div class="label">Published</div>
         <div class="value">13th August 2010</div>
-        <br style="clear: both"/>
+        <br class="clear"/>
         <div class="label">Framework</div>
         <div class="value"><a href="{{framework_url}}">{{framework_name}}</a></div>
       </div>
@@ -55,7 +50,7 @@
     
   </div>
   <div id="sidebar">
-
+    
   </div>
 </body>
 </html>
