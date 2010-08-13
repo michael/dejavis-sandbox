@@ -67,17 +67,19 @@ app.get '/', (req, res) ->
 app.get '/collections/:collection', (req, res) ->    
   res.send('TODO: Serve a collection')
 
+
 # Serves static files from the visualization directory
-app.get '/files/:vis/:file', (req, res) ->
+
+app.get /^\/files\/(.+)$/, (req, res) ->
   res.writeHead(200, {
     'Content-Type': 'text/javascript'
   })
-  res.write fs.readFileSync("visualizations/#{req.params.vis}/#{req.params.file}", 'utf-8')
+  res.write fs.readFileSync("visualizations/#{req.params[0]}", 'utf-8')
   res.end()
 
 app.get '/:vis', (req, res) ->
   manifest = fs.readFileSync("visualizations/#{req.params.vis}/manifest.json", 'utf-8')
   res.send render('templates/show.mustache', JSON.parse(manifest))
 
-app.listen 5000
+app.listen 5001
 
