@@ -1,7 +1,70 @@
-body {background: #efefef; font-family: Helvetica, 'Arial'; color: #777; font-size: 11px;}
-a {color: darkblue;}
-a:hover {color: lightblue;}
-#canvas { position: absolute; top: 70px; left: 20px; right: 240px; bottom: 20px; border: 1px solid #ccc; overflow: auto; background: #fff;}
-#info { padding: 10px; background: #fff; position: absolute; width: 200px; right: 10px; top: 70px; bottom: 20px; border: 1px solid #ccc; overflow: auto; }
-h1 {margin-top: 0px; padding-top: 0px; padding: 12px; color: #777;}
+/*
+-----------------------------------------
+ Common
+-----------------------------------------
+*/
+
+body {background: #efefef; font-family: 'Helvetica Neue', 'Arial'; color: #777; font-size: 11px;}
+a {color: #777;}
+a:hover {color: #000;}
+
+
+
+/*
+-----------------------------------------
+ Header
+-----------------------------------------
+*/
+
+#title {position: absolute; left: 20px; top: 0px; height: 90px; width: 240px; border-top: 4px solid #000; border-bottom: 1px solid #000;}
+#title a {color: #000; text-decoration: none;}
+
+#title h1 {margin-top: 0px; padding-top: 0px; padding: 12px; padding-left: 0px; font-size: 24px; color: #000;}
+#title span {position: absolute; top: 40px; left: 0px; font-size: 11px; }
+
 div.notice { font-style: italic; font-size: 10px; }
+
+/* Meta */
+#meta { position: absolute; left: 280px; top: 0px; right: 0px; padding-right: 20px; border-top: 4px solid #000; }
+
+#meta .meta-group {float: right; margin-left: 20px; line-height: 2.0; height: 80px; padding-top: 10px; border-bottom: 1px solid #000;}
+
+#meta .meta-group.left {float: left; }
+#meta .meta-group.title {margin: 0px; position: relative; }
+#meta .meta-group.title h2 {font-size: 30px; margin-top: 0px; margin: 0px; line-height: 1em; padding: 0px; color: black; }
+#meta .meta-group.title span {position: absolute; top: 35px; right: 0px; font-size: 12px; font-weight: bold;}
+
+#meta .meta-group .label {float: left; padding-right: 40px; text-transform: uppercase; color: #000; font-weight: bold; }
+#meta .meta-group.description .label {float: none;}
+#meta .meta-group.description {max-width: 240px;}
+
+#meta .meta-group .value {float: right; }
+
+/*
+-----------------------------------------
+ Sidebar
+-----------------------------------------
+*/
+
+#sidebar { padding: 10px; position: absolute; width: 240px; left: 10px; top: 110px; bottom: 20px; overflow: auto; }
+
+#sidebar select {width: 200px;}
+
+h3 {text-transform: uppercase; color: #000; border-bottom: 2px solid #000; padding: 3px; padding-left: 0px; font-size: 11px;}
+
+/*
+-----------------------------------------
+ PlotArea
+-----------------------------------------
+*/
+
+#canvas { position: absolute; top: 110px; right: 20px; left: 280px; bottom: 20px; border: 1px solid #000; overflow: auto; background: #fff;}
+
+
+/*
+-----------------------------------------
+ Content
+-----------------------------------------
+*/
+
+#content { padding: 15px; position: absolute; top: 110px; right: 20px; left: 20px; bottom: 20px; }

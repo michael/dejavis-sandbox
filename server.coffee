@@ -79,5 +79,5 @@ app.get '/:vis', (req, res) ->
   manifest = fs.readFileSync("visualizations/#{req.params.vis}/manifest.json", 'utf-8')
   res.send render('templates/show.mustache', JSON.parse(manifest))
 
-app.listen 3000
+app.listen 5000
 
