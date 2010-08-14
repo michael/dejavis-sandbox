@@ -68,3 +68,71 @@ h3 {text-transform: uppercase; color: #000; border-bottom: 2px solid #000; paddi
 */
 
 #content { padding: 15px; position: absolute; top: 110px; right: 20px; left: 20px; bottom: 20px; }
+
+/* projects page */
+
+#visualizations {
+    margin-top: 30px;
+    margin-bottom: 30px;
+    /*width: 745px;*/
+}
+
+.visualization {
+    position: relative;
+    left: -15px;
+    width: 201px;
+    height: 320px;
+    background: #fff;
+    -moz-border-radius: 5px;
+    -webkit-border-radius: 5px;
+    border-radius: 5px;
+    border: 1px solid #777;
+    float: left;
+    padding: 10px;
+    margin-left: 13px;
+    margin-bottom: 13px;
+    /*color: #72928c;*/
+}
+
+.visualization img {
+    opacity: 0.5;
+}
+
+.visualization a {
+  font-size: 15px;
+}
+
+.visualization:hover img {
+    opacity: 1;
+}
+
+.visualization:hover {
+    color: #000;
+    background: #fff;
+}
+
+.visualization:hover a {
+  color: #000;
+}
+
+.visualization .descr {
+    font-family: Georgia;
+    font-size: 11px;
+    font-style: italic;
+}
+
+.visualization .descr p {
+    color: #78a19b;
+}
+
+.visualization .descr .avatar {
+    float: right;
+    margin-top: 7px;
+    margin-left: 10px;
+}
+
+.visualization .meta {
+    position: absolute;
+    font-size: 0.9em;
+    bottom: 20px;
+}

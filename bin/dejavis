@@ -1,0 +1,12 @@
+#!/usr/bin/env node
+
+var path = require('path');
+var fs = require('fs');
+var sys = require('sys');
+
+global.puts = sys.puts
+
+var lib = path.join(path.dirname(fs.realpathSync(__filename)), '../dist');
+
+// require(lib + '/helpers').helpers.extend(global, require('sys'));
+require(lib + '/command').run();

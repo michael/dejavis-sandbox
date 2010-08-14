@@ -12,10 +12,12 @@ visualizations = [
   {
     name: 'stacks'
     title: 'Stacks'
+    descr: 'Visualizing groups of items using self-organizing stacks.'
   },
   {
     name: 'scatterplot'
     title: 'Scatterplot'
+    descr: 'An interactive animated Scatterplot visualization that allows zooming and panning.'
   }
 ]
 
@@ -72,14 +74,15 @@ app.get '/collections/:collection', (req, res) ->
 
 app.get /^\/files\/(.+)$/, (req, res) ->
   res.writeHead(200, {
-    'Content-Type': 'text/javascript'
+    'Content-Type': 'image/png'
   })
   res.write fs.readFileSync("visualizations/#{req.params[0]}", 'utf-8')
   res.end()
 
 app.get '/:vis', (req, res) ->
-  manifest = fs.readFileSync("visualizations/#{req.params.vis}/manifest.json", 'utf-8')
-  res.send render('templates/show.mustache', JSON.parse(manifest))
+  manifest = JSON.parse(fs.readFileSync("visualizations/#{req.params.vis}/manifest.json", 'utf-8'))
+  manifest['dir'] = "/files/#{req.params.vis}/"
+  res.send render('templates/show.mustache', manifest)
 
 app.listen 5001
 

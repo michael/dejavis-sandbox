@@ -5,7 +5,7 @@
   
   <!-- loads scripts specified in manifest.json -->
   {{#scripts}}
-  <script src="/files/{{name}}/{{.}}"></script>
+  <script src="{{dir}}{{.}}"></script>
   {{/scripts}}
   
   <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
@@ -14,7 +14,7 @@
   <div id="header">
     <div id="title">
       <h1><a href="/">Déjàvis</a></h1>
-      <span id="subtitle">An open data visualization repository</span>
+      <span id="subtitle">Datavis Exhibts</span>
     </div>
     
     <div id="meta">
