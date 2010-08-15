@@ -5,11 +5,10 @@ Déjàvis is a sandbox for data visualizations. It allows you to develop pluggab
 visualizations in a declarative style and deploy them to dejavis.org. You no
 longer need to start from a plain HTML file. The HTML frame is defined by the
 sandbox. You can modify the HTML using placeholders (name, description, author)
-which are specified in a `manifest.json` file, which is mandatory. Of course
-you can manipulate the DOM with Javascript at any time.
+which are specified in a `manifest.json` file. Of course you can manipulate the
+DOM with Javascript at any time.
 
-Once your visualization is finished you can share it at [dejavis.org](dejavis.org) or
-integrate it with your own environment.
+![Screenshot](http://github.com/michael/dejavis/raw/master/assets/screenshot.png)
 
 
 Workflow

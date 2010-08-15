@@ -34,7 +34,7 @@ class Bars
           traverser: uv.traverser.BreadthFirst
           displays: [{
             container: $('#canvas'),
-            width: 800,
+            width: 500,
             height: 320,
             zooming: true,
             paning: true
