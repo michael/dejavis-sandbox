@@ -71,7 +71,6 @@ app.get '/collections/:collection', (req, res) ->
 
 
 # Serves static files from the visualization directory
-
 app.get /^\/files\/(.+)$/, (req, res) ->
   res.writeHead(200, {
     'Content-Type': 'image/png'
@@ -85,4 +84,3 @@ app.get '/:vis', (req, res) ->
   res.send render('templates/show.mustache', manifest)
 
 app.listen 5001
-

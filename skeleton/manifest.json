@@ -1,26 +1,21 @@
 {
-  "name": "scatterplot",
-  "title": "Scatterplot",
-  "descr": "An interactive animated Scatterplot visualization that allows zooming and panning.",
-  "version": 0.1,
+  "name": "skeleton",
+  "title": "Example",
+  "descr": "An example visualization that serves as a starting point.",
+  "version": "0.1",
   "author": "Michael Aufreiter",
   "author_homepage": "http://twitter.com/_mql",
-  "github_url": "http://github.com/michael/scatterplot",
+  "github_url": "http://github.com/michael/dejavis",
   "github_user": "michael",
   "framework_name": "Unveil.js",
   "framework_url": "http://github.com/michael/unveil",
   "scripts": [
     "lib/jquery-1.4.2.min.js",
-    "lib/jquery.mousewheel.js",
     "lib/underscore.js",
     "lib/protovis-d3.2.js",
     "lib/unveil.js",
     "data/countries.js",
-    "scatterplot.js",
+    "bars.js",
     "app.js"
-  ],
-  "contributors": [
-    "Samo Korosec",
-    "Martin Gamsjäger"
   ]
 }

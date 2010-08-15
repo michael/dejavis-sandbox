@@ -1,5 +1,5 @@
 (function() {
-  var CWD, Mustache, SERVER_PORT, app, connect, express, fs, render, sys;
+  var CWD, Mustache, SERVER_PORT, _a, app, connect, exec, express, fs, jsl, printIt, render, spawn, sys;
   SERVER_PORT = 5000;
   CWD = process.cwd();
   express = require('express');
@@ -7,6 +7,9 @@
   sys = require('sys');
   fs = require('fs');
   Mustache = require('../../lib/mustache');
+  _a = require('child_process');
+  spawn = _a.spawn;
+  exec = _a.exec;
   render = function(filename, view) {
     var template;
     template = fs.readFileSync(filename, 'utf-8');
@@ -38,6 +41,15 @@
     res.write(fs.readFileSync(("" + (CWD) + "/" + (req.params[0])), 'utf-8'));
     return res.end();
   });
+  printIt = function(buffer) {
+    return puts(buffer.toString().trim());
+  };
+  jsl = spawn('coffee', ['-wc', '.'], {
+    cwd: CWD
+  });
+  jsl.stdout.on('data', printIt);
+  jsl.stderr.on('data', printIt);
+  jsl.stdin.end();
   app.listen(SERVER_PORT);
   puts('listening on port 5000...');
 })();

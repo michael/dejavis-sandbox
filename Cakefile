@@ -11,7 +11,6 @@ red   = '\033[0;31m'
 green = '\033[0;32m'
 reset = '\033[0m'
 
-
 # Run a CoffeeScript through the node/coffee interpreter.
 run = (args) ->
   proc =         spawn 'bin/coffee', args
@@ -27,9 +26,9 @@ task 'install', 'Install', ->
   exec "mkdir ~/.node_libraries/"
   exec "cp -rf . ~/.node_libraries/dejavis", (err, stdout, stderr) ->
     throw err if err
-  exec "ln -sf ~/.node_libraries/dejavis/bin/dejavis /usr/local/bin/dejavis", (err, stdout, stderr) ->
+  exec "sudo ln -sf ~/.node_libraries/dejavis/bin/dejavis /usr/local/bin/dejavis", (err, stdout, stderr) ->
     throw err if err
-  exec "chmod 770 /usr/local/bin/dejavis"
+  exec "sudo chmod 770 /usr/local/bin/dejavis"
   log "Successfully installed to /usr/local/dejavis", green
   log "Type 'dejavis' for usage of the command line utility."
   

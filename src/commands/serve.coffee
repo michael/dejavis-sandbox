@@ -2,11 +2,12 @@
 SERVER_PORT = 5000
 CWD = process.cwd()
 
-express  = require 'express'
-connect  = require 'connect'
-sys      = require 'sys'
-fs       = require 'fs'
-Mustache = require '../../lib/mustache'
+express        = require 'express'
+connect        = require 'connect'
+sys            = require 'sys'
+fs             = require 'fs'
+Mustache       = require '../../lib/mustache'
+{spawn, exec}  = require 'child_process'
 
 # Helpers
 # ==============================================================================
@@ -47,6 +48,14 @@ app.get /^\/files\/(.+)$/, (req, res) ->
   })
   res.write fs.readFileSync("#{CWD}/#{req.params[0]}", 'utf-8')
   res.end()
+
+# Compile CoffeeScript files on the fly as they are changed
+
+printIt = (buffer) -> puts buffer.toString().trim()
+jsl = spawn 'coffee', ['-wc', '.'], {cwd: CWD}
+jsl.stdout.on 'data', printIt
+jsl.stderr.on 'data', printIt
+jsl.stdin.end()
 
 app.listen SERVER_PORT
 
