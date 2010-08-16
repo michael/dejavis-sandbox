@@ -73,7 +73,7 @@ app.get '/collections/:collection', (req, res) ->
 # Serves static files from the visualization directory
 app.get /^\/files\/(.+)$/, (req, res) ->
   res.writeHead(200, {
-    'Content-Type': 'image/png'
+    'Content-Type': 'text/javascript'
   })
   res.write fs.readFileSync("visualizations/#{req.params[0]}", 'utf-8')
   res.end()
