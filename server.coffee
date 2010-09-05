@@ -18,6 +18,11 @@ visualizations = [
     name: 'scatterplot'
     title: 'Scatterplot'
     descr: 'An interactive animated Scatterplot visualization that allows zooming and panning.'
+  },
+  {
+    name: 'bullets'
+    title: 'Bullets'
+    descr: 'Unveil.js graphics demo..'
   }
 ]
 

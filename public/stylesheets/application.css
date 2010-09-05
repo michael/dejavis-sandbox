@@ -4,11 +4,13 @@
 -----------------------------------------
 */
 
-body {background: #efefef; font-family: 'Helvetica Neue', 'Arial'; color: #777; font-size: 11px;}
+body {background: #efefef; font-family: 'Helvetica Neue', 'Arial'; color: #777; font-size: 11px; line-height: 1.5em;}
 a {color: #777;}
 a:hover {color: #000;}
 
 .clear { clear: both; }
+
+em {background: #999; color: #fff; padding: 1px;}
 
 /*
 -----------------------------------------
