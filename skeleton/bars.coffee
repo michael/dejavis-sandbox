@@ -1,13 +1,4 @@
 # A customized Actor that adds animation to a Bar
-class MovingBar extends uv.Bar
-  constructor: (properties) ->
-    uv.Bar.call(this, properties)
-    @th = new uv.Tween({obj: this.properties, property: 'height', duration: 1.5 })
-  updateHeight: (h) ->
-    @th.continueTo(h, 1.5)
-  update: ->
-    @th.tick()
-
 class Bars
   constructor: (@collection, @params) ->
     @build()
@@ -23,7 +14,7 @@ class Bars
     # Update bar heights
     @scene.all('children').each (index, bar) =>
       val = @items.at(index).value(property)
-      bar.updateHeight(-parseInt(@scale(val), 10))
+      bar.animate('height', -parseInt(@scale(val), 10))
       bar.p 'fillStyle', ->
         if @active then 'orange' else colors(val).color
     
@@ -33,7 +24,7 @@ class Bars
           framerate: 30,
           traverser: uv.traverser.BreadthFirst
           displays: [{
-            container: $('#canvas'),
+            container: 'canvas',
             width: 500,
             height: 320,
             zooming: true,
@@ -43,30 +34,30 @@ class Bars
     
     @items = @collection.all('items')
     @items.each (index, item) =>
-      bar = new MovingBar {
+      @scene.add {
+        type: 'rect'
         x: 50+35*index
         y: 280
         width: 30
         height: 0
         interactive: true
+        actors: [
+          {
+            type: 'label',
+            x: 15
+            y: 15
+            width: 30
+            height: 20
+            text: -> item.identify()
+            textAlign: 'center'
+            fillStyle: 'black'
+            visible: -> @parent.active
+          }
+        ]
       }
-      
-      bar.add new uv.Label {
-        x: 15
-        y: 20
-        width: 30
-        height: 20
-        text: -> item.identify()
-        textAlign: 'center'
-        fillStyle: 'black'
-        background: true
-        visible: -> @parent.active
-      }
-      @scene.add(bar);
 
   render: ->
     @scene.start()
 
 # Exports
 window.Bars = Bars
-window.MovingBar = MovingBar

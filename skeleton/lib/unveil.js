@@ -3,81 +3,18 @@ var root = this;
 // Top level namespace
 var uv = {};
 
-// CONSTANTS
+// Constants
 uv.EPSILON = 0.0001;
 uv.MAX_FLOAT   = 3.4028235e+38;
 uv.MIN_FLOAT   = -3.4028235e+38;
 uv.MAX_INT     = 2147483647;
 uv.MIN_INT     = -2147483648;
-uv.PI          = Math.PI;
-uv.TWO_PI      = 2 * uv.PI;
-uv.HALF_PI     = uv.PI / 2;
-uv.THIRD_PI    = uv.PI / 3;
-uv.QUARTER_PI  = uv.PI / 4;
-uv.DEG_TO_RAD  = uv.PI / 180;
-uv.RAD_TO_DEG  = 180 / uv.PI;
 
-
-Object.extend = function (f) {
+uv.extend = function (f) {
   function G() {}
   G.prototype = f.prototype || f;
   return new G();
 };
-
-
-Object.create = function (o) {
-  function F() {}
-  F.prototype = o;
-  return new F();
-};
-
-
-Object.keys = function (obj) {
-  var array = [],
-      prop;
-  for (prop in obj) {
-    if (obj.hasOwnProperty(prop)) {
-      array.push(prop);
-    }
-  }
-  return array;
-};
-
-
-function Class(proto) {
-  var self = this,
-      isSubclass = typeof this === 'function',
-      Class = proto.hasOwnProperty('constructor')
-        ? proto.constructor
-        : isSubclass 
-          ? (proto.constructor = function(){ self.apply(this, arguments) })
-          : (proto.constructor = function(){})
-  if (proto.hasOwnProperty('extend'))
-    extend(Class, proto.extend)
-  Class.prototype = proto
-  Class.extend = arguments.callee
-  if (isSubclass) {
-    Class.prototype.__proto__ = this.prototype
-    if ('extended' in this)
-      this.extended(Class)
-  }
-  return Class
-}
-
-Class.prototype = Function.prototype
-
-Class.prototype.include = function(proto){
-  extend(this.prototype, proto)
-  if ('included' in proto) proto.included(this)
-  return this
-}
-
-function extend(a, b) {
-  for (var key in b)
-    if (b.hasOwnProperty(key))
-      a[key] = b[key]
-}
-
 // SortedHash
 // =============================================================================
 
@@ -117,7 +54,7 @@ uv.SortedHash.prototype.clone = function () {
 // Parameters:
 //   * key [String]
 uv.SortedHash.prototype.set = function (key, value) {
-  if (key === null || key === undefined)
+  if (key === undefined)
     return this;
   if (!this.data[key]) {
     this.keyOrder.push(key);
@@ -138,7 +75,6 @@ uv.SortedHash.prototype.get = function (key) {
 // Parameters:
 //   * key [String]
 uv.SortedHash.prototype.del = function (key) {
-  // return this.data[key];
   if (this.data[key]) {
     this.keyOrder.splice($.inArray(key, this.keyOrder), 1);
     delete this.data[key];
@@ -390,7 +326,7 @@ uv.Comparators.DESC = function(item1, item2) {
 // Returns:
 //   => [Node] the constructed Node
 uv.Node = function (options) {
-  this.id = uv.Node.generateId();
+  this.nodeId = uv.Node.generateId();
   if (options) {
     this.val = options.value; // used for leave nodes (simple types)
   }
@@ -402,7 +338,7 @@ uv.Node = function (options) {
 // Returns:
 //   => [String, Number] The Node's identity which is simply the node's id
 uv.Node.prototype.identity = function() {
-  return this.id;
+  return this.nodeId;
 };
 
 uv.Node.nodeCount = 0;
@@ -442,7 +378,7 @@ uv.Node.prototype.set = function (property, key, value) {
 // Returns:
 //   => [Node] The target Node
 uv.Node.prototype.get = function (property, key) {
-  if (key && this._properties[property]!== undefined) {
+  if (key !== undefined && this._properties[property] !== undefined) {
     return this._properties[property].get(key);
   }
 };
@@ -477,6 +413,7 @@ uv.Node.prototype.value = function(property) {
   return this.values(property).first();
 };
 
+
 // Values of associated target nodes for non-unique properties
 // 
 // Returns:
@@ -490,8 +427,9 @@ uv.Node.prototype.values = function(property) {
   });
 };
 
+
 uv.Node.prototype.toString = function() {
-  var str = "Node#"+this.id+" {\n",
+  var str = "Node#"+this.nodeId+" {\n",
       that = this;
       
   _.each(this._properties, function(node, key) {
@@ -515,7 +453,7 @@ uv.Value = function (value) {
   uv.Node.call(this, {value: value});
 };
 
-uv.Value.prototype = Object.extend(uv.Node);
+uv.Value.prototype = uv.extend(uv.Node);
 
 // Returns a copy without items
 // used by uv.Collection#filter
@@ -557,7 +495,7 @@ uv.Item = function (collection, key, attributes, nested) {
         value.set('items', that.key, that);
       }
       // connect item with its values
-      that.set(key, valueKey, value);
+      that.set(key, index, value);
     });
   });
   
@@ -565,7 +503,7 @@ uv.Item = function (collection, key, attributes, nested) {
   collection.set('items', key, this);
 };
 
-uv.Item.prototype = Object.extend(uv.Node);
+uv.Item.prototype = uv.extend(uv.Node);
 
 // return the type of a specific property
 uv.Item.prototype.type = function (property) {
@@ -605,7 +543,7 @@ uv.Property = function (collection, key, options) {
   }
 };
 
-uv.Property.prototype = Object.extend(uv.Node);
+uv.Property.prototype = uv.extend(uv.Node);
 
 // Returns a copy without values
 // used by Collection#filter
@@ -667,7 +605,7 @@ uv.Collection = function (options) {
 // The is where transformers have to register
 uv.Collection.transformers = {};
 
-uv.Collection.prototype = Object.extend(uv.Node);
+uv.Collection.prototype = uv.extend(uv.Node);
 
 uv.Collection.prototype.filter = function(criteria) {
   var c2 = new uv.Collection();
@@ -828,234 +766,6 @@ uv.Collection.transformers.group.params = {
 };
 
 
-uv.Collection.transformers.coOccurrences = function(c, params) {
-  if (!params.property || !params.knn) return c;
-  
-  var targetItems = {},
-      property = c.get('properties', params.property),
-      values = property.all('values');
-  
-  function coOccurrences(v1, v2) {
-    var items1 = v1.all('items'),
-        items2 = v2.all('items');
-    return items1.intersect(items2).length;
-  };
-  
-  function similarity(v1, v2) {
-    return 0.5* (coOccurrences(v1, v2) / coOccurrences(v1, v1)
-          + coOccurrences(v2, v1) / coOccurrences(v2, v2));
-  };
-  
-  // get property values
-  values.each(function(index, value) {
-    targetItems[value.val] = {
-      source: value.val,
-      "similar_items": {}
-    };
-
-    var similarItems = [];
-    
-    values.each(function (index, otherValue) {
-      var sim = similarity(value, otherValue);
-      if (sim>0 && value.val !== otherValue.val) {
-        similarItems.push({
-          "name": otherValue.val,
-          "number_of_cooccurrences": coOccurrences(value, otherValue),
-          "score": sim
-        });
-      }
-    });
-        
-    // sort by score
-    similarItems.sort(function(item1, item2) {
-      var value1 = item1.score,
-          value2 = item2.score;
-      return value1 === value2 ? 0 : (value1 > value2 ? -1 : 1);
-    });
-    
-    similarItems = similarItems.slice(0, params.knn);
-    
-    var similarItemsHash = {};
-    $.each(similarItems, function(index, item) {
-      similarItemsHash[item.name] = item;
-    });
-
-    targetItems[value.val].source = value.val;
-    targetItems[value.val].similar_items = similarItemsHash;
-  });
-
-  // construct a new collection that models coocurrences
-  var cspec = {
-    properties: {
-      source: {
-        name: "Source",
-        type: "string",
-        unique: true
-      },
-      similar_items: {
-        name: "Similar Items",
-        type: "collection",
-        unique: true,
-        properties: {
-          "name": {
-            name: 'Name',
-            type: 'string',
-            unique: true
-          },
-          "number_of_cooccurrences": {
-            name: 'Number of Co-occurrences',
-            type: 'number',
-            unique: true
-          },
-          "score": {
-            name: 'Similarity Score',
-            type: 'number',
-            unique: true
-          }
-        }
-      }
-    },
-    items: targetItems
-  };
-  return new uv.Collection(cspec);
-};
-
-// Operation specification
-uv.Collection.transformers.coOccurrences.label = "Similarity (COOC)";
-uv.Collection.transformers.coOccurrences.params = {
-  property: {
-    name: "Property",
-    type: "property"
-  },
-  knn: {
-    name: "K-nearest Neighbor",
-    type: "number"
-  }
-};
-uv.Collection.transformers.coOccurrencesBaccigalupo = function(c, params) {
-
-  // check for valid params
-  if (!params.property || !params.knn) return c;
-  
-  var targetItems = {},
-      property = c.get('properties', params.property),
-      values = property.all('values');
-  
-  function checkDistance(playlist, v1, v2, d) {
-    for (var i = 0; i<playlist.values(params.property).length-d; i++) {
-      
-      if (playlist.values(params.property).at(i)===v1.val && playlist.values(params.property).at(i+d+1)===v2.val) {
-        return true;
-      }
-    }
-    return false;
-  };
-  
-  function coOccurencesAtDistance(v1, v2, d) {
-    var items1 = v1.all('items'),
-        items2 = v2.all('items'),
-        playlists = items1.intersect(items2);
-        
-    return playlists.select(function(key, p) {
-      return checkDistance(p, v1, v2, d);
-    }).length;
-  };
-  
-  function similarity(v1, v2) {
-    return 1*coOccurencesAtDistance(v1, v2, 0) +
-           0.8* coOccurencesAtDistance(v1, v2, 1) +
-           0.64* coOccurencesAtDistance(v1, v2, 2);
-  };
-  
-  // get property values
-  values.each(function(index, value) {
-    targetItems[value.val] = {
-      source: value.val,
-      "similar_items": {}
-    };
-
-    var similarItems = [];
-    
-    values.each(function (index, otherValue) {
-      var sim = similarity(value, otherValue);
-      
-      if (sim>0 && value.val !== otherValue.val) {
-        similarItems.push({
-          "name": otherValue.val,
-          "number_of_cooccurrences": 0,
-          "score": sim
-        });
-      }
-    });
-    
-    // sort by score
-    similarItems.sort(function(item1, item2) {
-      var value1 = item1.score,
-          value2 = item2.score;
-      return value1 === value2 ? 0 : (value1 > value2 ? -1 : 1);
-    });
-    
-    similarItems = similarItems.slice(0, params.knn);
-    
-    var similarItemsHash = {};
-    $.each(similarItems, function(index, item) {
-      similarItemsHash[item.name] = item;
-    });
-    
-    targetItems[value.val].source = value.val;
-    targetItems[value.val].similar_items = similarItemsHash;
-    
-  });
-  
-  // construct a new collection that models coocurrences
-  var cspec = {
-    properties: {
-      source: {
-        name: "Source",
-        type: "string",
-        unique: true
-      },
-      similar_items: {
-        name: "Similar Items",
-        type: "collection",
-        unique: true,
-        properties: {
-          "name": {
-            name: 'Name',
-            type: 'string',
-            unique: true
-          },
-          "number_of_cooccurrences": {
-            name: 'Number of Co-occurrences',
-            type: 'number',
-            unique: true
-          },
-          "score": {
-            name: 'Similarity Score',
-            type: 'number',
-            unique: true
-          }
-        }
-      }
-    },
-    items: targetItems
-  };
-  
-  return new uv.Collection(cspec);
-};
-
-// Transformer specification
-uv.Collection.transformers.coOccurrencesBaccigalupo.label = "Co-Occurrences Baccigalupo";
-uv.Collection.transformers.coOccurrencesBaccigalupo.params = {
-  property: {
-    name: "Property",
-    type: "property"
-  },
-  knn: {
-    name: "K-nearest Neighbor",
-    type: "number"
-  }
-};
 uv.DataGraph = function(g) {
   uv.Node.call(this);
   var that = this;
@@ -1073,7 +783,13 @@ uv.DataGraph = function(g) {
   var resources = _.select(g, function(node, key) {
     if (node.type !== 'type') {
       var res = that.get('resources', key) || new uv.Resource(that, key, node);
+      
       that.set('resources', key, res);
+      
+      if (!that.get('types', node.type)) {
+        throw "Type '"+node.type+"' not found for "+key+"...";
+      }
+      
       that.get('types', node.type).set('resources', key, res);
       return true;
     }
@@ -1084,10 +800,32 @@ uv.DataGraph = function(g) {
   this.all('resources').each(function(index, r) {
     r.build();
   });
-  
 };
 
-uv.DataGraph.prototype = Object.extend(uv.Node);
+uv.DataGraph.prototype = uv.extend(uv.Node);
+
+
+// Return a set of matching resources based on a conditions hash
+// 
+// Usage:
+// $ var items = graph.find({
+// $   type: '/type/document',
+// $   category: 'Conference Paper'
+// $ });
+
+uv.DataGraph.prototype.find = function(conditions) {
+  
+  this.all('resources').select(function(key, res) {
+    for(var k in conditions) {
+      if (key === 'type') {
+        if (conditions[k] !== res.type.key) return false;
+      } else {
+        if (conditions[k] !== res.get(k)) return false;
+      }
+    }
+    return true;
+  });
+};
 
 uv.VALUE_TYPES = [
   'string',
@@ -1128,18 +866,19 @@ uv.Type = function(g, key, type) {
   });
 };
 
-uv.Type.prototype = Object.extend(uv.Node);
+uv.Type.prototype = uv.extend(uv.Node);
 uv.Resource = function(g, key, data) {
   uv.Node.call(this);
   
   this.g = g;
   this.key = key;
   this.type = g.get('types', data.type);
-  // memoize raw data for the build process
+  
+  // Memoize raw data for the build process
   this.data = data;
 };
 
-uv.Resource.prototype = Object.extend(uv.Node);
+uv.Resource.prototype = uv.extend(uv.Node);
 
 uv.Resource.prototype.build = function() {
   var that = this;
@@ -1150,15 +889,27 @@ uv.Resource.prototype.build = function() {
     var values = _.isArray(property) ? property : [property];
     var p = that.type.get('properties', key);
     
+    if (!p) {
+      throw "property "+key+" not found at "+that.type.key+" for resource "+that.key+"";
+    }
+    
+    // init key
+    that.replace(p.key, new uv.SortedHash());
+    
+    
     if (p.isObjectType()) {
       _.each(values, function(v, index) {
         var res = that.g.get('resources', v);
+        if (!res) {
+          throw "Can't reference "+v
+        }
         that.set(p.key, res.key, res);
       });
     } else {
       _.each(values, function(v, index) {
         var val = p.get('values', v);
-        // look if this value is already registerd
+        
+        // Check if the value is already registered
         // on this property
         if (!val) {
           val = new uv.Node({value: v});
@@ -1186,335 +937,381 @@ uv.Resource.prototype.get = function(property, key) {
   }
 };
 
-////////////////////////////////////////////////////////////////////////////
-// Vector
-// Taken from Processing.js
-////////////////////////////////////////////////////////////////////////////
-uv.Vector = function(x, y, z) {
-  this.x = x || 0;
-  this.y = y || 0;
-  this.z = z || 0;
-};
-
-uv.Vector.angleBetween = function(v1, v2) {
-  return Math.acos(v1.dot(v2) / (v1.mag() * v2.mag()));
-};
-
-// Common vector operations for Vector
-uv.Vector.prototype = {
-  set: function(v, y, z) {
-    if (arguments.length === 1) {
-      this.set(v.x || v[0], v.y || v[1], v.z || v[2]);
-    } else {
-      this.x = v;
-      this.y = y;
-      this.z = z;
-    }
-  },
-  get: function() {
-    return new uv.Vector(this.x, this.y, this.z);
-  },
-  mag: function() {
-    return Math.sqrt(this.x * this.x + this.y * this.y + this.z * this.z);
-  },
-  add: function(v, y, z) {
-    if (arguments.length === 3) {
-      this.x += v;
-      this.y += y;
-      this.z += z;
-    } else if (arguments.length === 1) {
-      this.x += v.x;
-      this.y += v.y;
-      this.z += v.z;
-    }
-  },
-  sub: function(v, y, z) {
-    if (arguments.length === 3) {
-      this.x -= v;
-      this.y -= y;
-      this.z -= z;
-    } else if (arguments.length === 1) {
-      this.x -= v.x;
-      this.y -= v.y;
-      this.z -= v.z;
-    }
-  },
-  mult: function(v) {
-    if (typeof v === 'number') {
-      this.x *= v;
-      this.y *= v;
-      this.z *= v;
-    } else if (typeof v === 'object') {
-      this.x *= v.x;
-      this.y *= v.y;
-      this.z *= v.z;
-    }
-  },
-  div: function(v) {
-    if (typeof v === 'number') {
-      this.x /= v;
-      this.y /= v;
-      this.z /= v;
-    } else if (typeof v === 'object') {
-      this.x /= v.x;
-      this.y /= v.y;
-      this.z /= v.z;
-    }
-  },
-  dist: function(v) {
-    var dx = this.x - v.x,
-      dy = this.y - v.y,
-      dz = this.z - v.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  },
-  dot: function(v, y, z) {
-    var num;
-    if (arguments.length === 3) {
-      num = this.x * v + this.y * y + this.z * z;
-    } else if (arguments.length === 1) {
-      num = this.x * v.x + this.y * v.y + this.z * v.z;
-    }
-    return num;
-  },
-  cross: function(v) {
-    var
-    crossX = this.y * v.z - v.y * this.z,
-      crossY = this.z * v.x - v.z * this.x,
-      crossZ = this.x * v.y - v.x * this.y;
-    return new uv.Vector(crossX, crossY, crossZ);
-  },
-  normalize: function() {
-    var m = this.mag();
-    if (m > 0) {
-      this.div(m);
-    }
-  },
-  limit: function(high) {
-    if (this.mag() > high) {
-      this.normalize();
-      this.mult(high);
-    }
-  },
-  heading2D: function() {
-    var angle = Math.atan2(-this.y, this.x);
-    return -angle;
-  },
-  toString: function() {
-    return "[" + this.x + ", " + this.y + ", " + this.z + "]";
-  },
-  array: function() {
-    return [this.x, this.y, this.z];
-  }
-};
-
-// Matrix2D (taken from Processing.js)
-// =============================================================================
-// 
-// TODO: look for a more functional-style matrix implementation
-// http://files.geomajas.org/doc/jsdoc/1.3.1/overview-summary-Matrix2D.js.html
-
-uv.printMatrixHelper = function printMatrixHelper(elements) {
-  var big = 0;
-  for (var i = 0; i < elements.length; i++) {
-
-    if (i !== 0) {
-      big = Math.max(big, Math.abs(elements[i]));
-    } else {
-      big = Math.abs(elements[i]);
-    }
-  }
-  var digits = (big + " ").indexOf(".");
-  if (digits === 0) {
-    digits = 1;
-  } else if (digits === -1) {
-    digits = (big + " ").length;
-  }
-  return digits;
-};
-
-uv.Matrix2D = function() {
-  if (arguments.length === 0) {
-    this.reset();
-  } else if (arguments.length === 1 && arguments[0] instanceof uv.Matrix2D) {
-    this.set(arguments[0].array());
-  } else if (arguments.length === 6) {
-    this.set(arguments[0], arguments[1], arguments[2], arguments[3], arguments[4], arguments[5]);
-  }
-};
-
-uv.Matrix2D.prototype = {
-  set: function() {
-    if (arguments.length === 6) {
-      var a = arguments;
-      this.set([a[0], a[1], a[2],
-                a[3], a[4], a[5]]);
-    } else if (arguments.length === 1 && arguments[0] instanceof uv.Matrix2D) {
-      this.elements = arguments[0].array();
-    } else if (arguments.length === 1 && arguments[0] instanceof Array) {
-      this.elements = arguments[0].slice();
-    }
-  },
-  get: function() {
-    var outgoing = new pv.Matrix2D();
-    outgoing.set(this.elements);
-    return outgoing;
-  },
-  reset: function() {
-    this.set([1, 0, 0, 0, 1, 0]);
-  },
-  // Returns a copy of the element values.
-  array: function array() {
-    return this.elements.slice();
-  },
-  translate: function(tx, ty) {
-    this.elements[2] = tx * this.elements[0] + ty * this.elements[1] + this.elements[2];
-    this.elements[5] = tx * this.elements[3] + ty * this.elements[4] + this.elements[5];
-  },
-  // Does nothing in Processing.
-  transpose: function() {
-  },
-  mult: function(source, target) {
-    var x, y;
-    if (source instanceof uv.Vector) {
-      x = source.x;
-      y = source.y;
-      if (!target) {
-        target = new uv.Vector();
-      }
-    } else if (source instanceof Array) {
-      x = source[0];
-      y = source[1];
-      if (!target) {
-        target = [];
+/**
+* Matrix.js v1.1.0
+* 
+* Copyright (c) 2010 STRd6
+*
+* Permission is hereby granted, free of charge, to any person obtaining a copy
+* of this software and associated documentation files (the "Software"), to deal
+* in the Software without restriction, including without limitation the rights
+* to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+* copies of the Software, and to permit persons to whom the Software is
+* furnished to do so, subject to the following conditions:
+*
+* The above copyright notice and this permission notice shall be included in
+* all copies or substantial portions of the Software.
+*
+* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+* IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+* FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+* AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+* LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+* OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+* THE SOFTWARE.
+*
+* Loosely based on flash:
+* http://www.adobe.com/livedocs/flash/9.0/ActionScriptLangRefV3/flash/geom/Matrix.html
+*/
+(function() {
+  /**
+   * Create a new point with given x and y coordinates. If no arguments are given
+   * defaults to (0, 0).
+   * @name Point
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @constructor
+   */
+  function Point(x, y) {
+    return {
+      /**
+       * The x coordinate of this point.
+       * @name x
+       * @fieldOf Point#
+       */
+      x: x || 0,
+      /**
+       * The y coordinate of this point.
+       * @name y
+       * @fieldOf Point#
+       */
+      y: y || 0,
+      /**
+       * Adds a point to this one and returns the new point.
+       * @name add
+       * @methodOf Point#
+       *
+       * @param {Point} other The point to add this point to.
+       * @returns A new point, the sum of both.
+       * @type Point
+       */
+      add: function(other) {
+        return Point(this.x + other.x, this.y + other.y);
       }
     }
-    if (target instanceof Array) {
-      target[0] = this.elements[0] * x + this.elements[1] * y + this.elements[2];
-      target[1] = this.elements[3] * x + this.elements[4] * y + this.elements[5];
-    } else if (target instanceof uv.Vector) {
-      target.x = this.elements[0] * x + this.elements[1] * y + this.elements[2];
-      target.y = this.elements[3] * x + this.elements[4] * y + this.elements[5];
-      target.z = 0;
-    }
-    return target;
-  },
-  multX: function(x, y) {
-    return x * this.elements[0] + y * this.elements[1] + this.elements[2];
-  },
-  multY: function(x, y) {
-    return x * this.elements[3] + y * this.elements[4] + this.elements[5];
-  },
-  skewX: function(angle) {
-    this.apply(1, 0, 1, angle, 0, 0);
-  },
-  skewY: function(angle) {
-    this.apply(1, 0, 1, 0, angle, 0);
-  },
-  determinant: function() {
-    return this.elements[0] * this.elements[4] - this.elements[1] * this.elements[3];
-  },
-  // non-destructive version
-  inverse: function() {
-    var res = new uv.Matrix2D(this);
-    return res.invert() ? res : null;
-  },
-  invert: function() {
-    var d = this.determinant();
-    
-    if ( Math.abs( d ) > uv.MIN_FLOAT ) {
-      var old00 = this.elements[0];
-      var old01 = this.elements[1];
-      var old02 = this.elements[2];
-      var old10 = this.elements[3];
-      var old11 = this.elements[4];
-      var old12 = this.elements[5];
-      this.elements[0] =  old11 / d;
-      this.elements[3] = -old10 / d;
-      this.elements[1] = -old01 / d;
-      this.elements[4] =  old00 / d;
-      this.elements[2] = (old01 * old12 - old11 * old02) / d;
-      this.elements[5] = (old10 * old02 - old00 * old12) / d;
-      return true;
-    }
-    return false;
-  },
-  scale: function(sx, sy) {
-    if (sx && !sy) {
-      sy = sx;
-    }
-    if (sx && sy) {
-      this.elements[0] *= sx;
-      this.elements[1] *= sy;
-      this.elements[3] *= sx;
-      this.elements[4] *= sy;
-    }
-  },
-  // matrix mult of the current matrix with the given matrix, stored in the current matrix
-  apply: function() {
-    if (arguments.length === 1 && arguments[0] instanceof uv.Matrix2D) {
-      this.apply(arguments[0].array());
-    } else if (arguments.length === 6) {
-      var a = arguments;
-      this.apply([a[0], a[1], a[2],
-                  a[3], a[4], a[5]]);
-    } else if (arguments.length === 1 && arguments[0] instanceof Array) {
-      var source = arguments[0];
-      var result = [0, 0, this.elements[2],
-                    0, 0, this.elements[5]];
-      var e = 0;
-      for (var row = 0; row < 2; row++) {
-        for (var col = 0; col < 3; col++, e++) {
-          result[e] += this.elements[row * 3 + 0] * source[col + 0] + this.elements[row * 3 + 1] * source[col + 3];
-        }
-      }
-      this.elements = result.slice();
-    }
-  },
-  preApply: function() {
-    if (arguments.length === 1 && arguments[0] instanceof uv.Matrix2D) {
-      this.preApply(arguments[0].array());
-    } else if (arguments.length === 6) {
-      var a = arguments;
-      this.preApply([a[0], a[1], a[2],
-                     a[3], a[4], a[5]]);
-    } else if (arguments.length === 1 && arguments[0] instanceof Array) {
-      var source = arguments[0];
-      var result = [0, 0, source[2],
-                    0, 0, source[5]];
-      result[2]= source[2] + this.elements[2] * source[0] + this.elements[5] * source[1];
-      result[5]= source[5] + this.elements[2] * source[3] + this.elements[5] * source[4];
-      result[0] = this.elements[0] * source[0] + this.elements[3] * source[1];
-      result[3] = this.elements[0] * source[3] + this.elements[3] * source[4];
-      result[1] = this.elements[1] * source[0] + this.elements[4] * source[1];
-      result[4] = this.elements[1] * source[3] + this.elements[4] * source[4];
-      this.elements = result.slice();
-    }
-  },
-  rotate: function(angle) {
-    var c = Math.cos(angle);
-    var s = Math.sin(angle);
-    var temp1 = this.elements[0];
-    var temp2 = this.elements[1];
-    this.elements[0] =  c * temp1 + s * temp2;
-    this.elements[1] = -s * temp1 + c * temp2;
-    temp1 = this.elements[3];
-    temp2 = this.elements[4];
-    this.elements[3] =  c * temp1 + s * temp2;
-    this.elements[4] = -s * temp1 + c * temp2;
-  },
-  rotateZ: function(angle) {
-    this.rotate(angle);
-  },
-  toString: function() {
-    var digits = uv.printMatrixHelper(this.elements);
-    var output = "";
-    
-    output += "[" +this.elements[0] + " " + this.elements[1] + " " + this.elements[2] + " ]\n";
-    output += "[" +this.elements[3] + " " + this.elements[4] + " " + this.elements[5] + " ]\n\n";
-    
-    return output;
   }
-};
+
+  /**
+   * @param {Point} p1
+   * @param {Point} p2
+   * @returns The Euclidean distance between two points.
+   */
+  Point.distance = function(p1, p2) {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+  };
+
+  /**
+   * If you have two dudes, one standing at point p1, and the other
+   * standing at point p2, then this method will return the direction
+   * that the dude standing at p1 will need to face to look at p2.
+   * @param {Point} p1 The starting point.
+   * @param {Point} p2 The ending point.
+   * @returns The direction from p1 to p2 in radians.
+   */
+  Point.direction = function(p1, p2) {
+    return Math.atan2(
+      p2.y - p1.y,
+      p2.x - p1.x
+    );
+  }
+
+  /**
+   * <pre>
+   *  _        _
+   * | a  c tx  |
+   * | b  d ty  |
+   * |_0  0  1 _|
+   * </pre>
+   * Creates a matrix for 2d affine transformations.
+   *
+   * concat, inverse, rotate, scale and translate return new matrices with the
+   * transformations applied. The matrix is not modified in place.
+   *
+   * Returns the identity matrix when called with no arguments.
+   * @name Matrix
+   * @param {Number} [a]
+   * @param {Number} [b]
+   * @param {Number} [c]
+   * @param {Number} [d]
+   * @param {Number} [tx]
+   * @param {Number} [ty]
+   * @constructor
+   */
+  function Matrix(a, b, c, d, tx, ty) {
+    a = a !== undefined ? a : 1;
+    d = d !== undefined ? d : 1;
+
+    return {
+      /**
+       * @name a
+       * @fieldOf Matrix#
+       */
+      a: a,
+      /**
+       * @name b
+       * @fieldOf Matrix#
+       */
+      b: b || 0,
+      /**
+       * @name c
+       * @fieldOf Matrix#
+       */
+      c: c || 0,
+      /**
+       * @name d
+       * @fieldOf Matrix#
+       */
+      d: d,
+      /**
+       * @name tx
+       * @fieldOf Matrix#
+       */
+      tx: tx || 0,
+      /**
+       * @name ty
+       * @fieldOf Matrix#
+       */
+      ty: ty || 0,
+
+      /**
+       * Returns the result of this matrix multiplied by another matrix
+       * combining the geometric effects of the two. In mathematical terms, 
+       * concatenating two matrixes is the same as combining them using matrix multiplication.
+       * If this matrix is A and the matrix passed in is B, the resulting matrix is A x B
+       * http://mathworld.wolfram.com/MatrixMultiplication.html
+       * @name concat
+       * @methodOf Matrix#
+       *
+       * @param {Matrix} matrix The matrix to multiply this matrix by.
+       * @returns The result of the matrix multiplication, a new matrix.
+       * @type Matrix
+       */
+      concat: function(matrix) {
+        return Matrix(
+          this.a * matrix.a + this.c * matrix.b,
+          this.b * matrix.a + this.d * matrix.b,
+          this.a * matrix.c + this.c * matrix.d,
+          this.b * matrix.c + this.d * matrix.d,
+          this.a * matrix.tx + this.c * matrix.ty + this.tx,
+          this.b * matrix.tx + this.d * matrix.ty + this.ty
+        );
+      },
+
+      /**
+       * Given a point in the pretransform coordinate space, returns the coordinates of 
+       * that point after the transformation occurs. Unlike the standard transformation 
+       * applied using the transformPoint() method, the deltaTransformPoint() method's 
+       * transformation does not consider the translation parameters tx and ty.
+       * @name deltaTransformPoint
+       * @methodOf Matrix#
+       * @see #transformPoint
+       *
+       * @return A new point transformed by this matrix ignoring tx and ty.
+       * @type Point
+       */
+      deltaTransformPoint: function(point) {
+        return Point(
+          this.a * point.x + this.c * point.y,
+          this.b * point.x + this.d * point.y
+        );
+      },
+
+      /**
+       * Returns the inverse of the matrix.
+       * http://mathworld.wolfram.com/MatrixInverse.html
+       * @name inverse
+       * @methodOf Matrix#
+       *
+       * @returns A new matrix that is the inverse of this matrix.
+       * @type Matrix
+       */
+      inverse: function() {
+        var determinant = this.a * this.d - this.b * this.c;
+        return Matrix(
+          this.d / determinant,
+          -this.b / determinant,
+          -this.c / determinant,
+          this.a / determinant,
+          (this.c * this.ty - this.d * this.tx) / determinant,
+          (this.b * this.tx - this.a * this.ty) / determinant
+        );
+      },
+
+      /**
+       * Returns a new matrix that corresponds this matrix multiplied by a
+       * a rotation matrix.
+       * @name rotate
+       * @methodOf Matrix#
+       * @see Matrix.rotation
+       *
+       * @param {Number} theta Amount to rotate in radians.
+       * @param {Point} [aboutPoint] The point about which this rotation occurs. Defaults to (0,0).
+       * @returns A new matrix, rotated by the specified amount.
+       * @type Matrix
+       */
+      rotate: function(theta, aboutPoint) {
+        return this.concat(Matrix.rotation(theta, aboutPoint));
+      },
+
+      /**
+       * Returns a new matrix that corresponds this matrix multiplied by a
+       * a scaling matrix.
+       * @name scale
+       * @methodOf Matrix#
+       * @see Matrix.scale
+       *
+       * @param {Number} sx
+       * @param {Number} [sy]
+       * @param {Point} [aboutPoint] The point that remains fixed during the scaling
+       * @type Matrix
+       */
+      scale: function(sx, sy, aboutPoint) {
+        return this.concat(Matrix.scale(sx, sy, aboutPoint));
+      },
+
+      /**
+       * Returns the result of applying the geometric transformation represented by the 
+       * Matrix object to the specified point.
+       * @name transformPoint
+       * @methodOf Matrix#
+       * @see #deltaTransformPoint
+       *
+       * @returns A new point with the transformation applied.
+       * @type Point
+       */
+      transformPoint: function(point) {
+        return Point(
+          this.a * point.x + this.c * point.y + this.tx,
+          this.b * point.x + this.d * point.y + this.ty
+        );
+      },
+
+      /**
+       * Translates the matrix along the x and y axes, as specified by the tx and ty parameters.
+       * @name translate
+       * @methodOf Matrix#
+       * @see Matrix.translation
+       *
+       * @param {Number} tx The translation along the x axis.
+       * @param {Number} ty The translation along the y axis.
+       * @returns A new matrix with the translation applied.
+       * @type Matrix
+       */
+      translate: function(tx, ty) {
+        return this.concat(Matrix.translation(tx, ty));
+      }
+    }
+  }
+
+  /**
+   * Creates a matrix transformation that corresponds to the given rotation,
+   * around (0,0) or the specified point.
+   * @see Matrix#rotate
+   *
+   * @param {Number} theta Rotation in radians.
+   * @param {Point} [aboutPoint] The point about which this rotation occurs. Defaults to (0,0).
+   * @returns 
+   * @type Matrix
+   */
+  Matrix.rotation = function(theta, aboutPoint) {
+    var rotationMatrix = Matrix(
+      Math.cos(theta),
+      Math.sin(theta),
+      -Math.sin(theta),
+      Math.cos(theta)
+    );
+
+    if(aboutPoint) {
+      rotationMatrix =
+        Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
+          rotationMatrix
+        ).concat(
+          Matrix.translation(-aboutPoint.x, -aboutPoint.y)
+        );
+    }
+
+    return rotationMatrix;
+  };
+
+  /**
+   * Returns a matrix that corresponds to scaling by factors of sx, sy along
+   * the x and y axis respectively.
+   * If only one parameter is given the matrix is scaled uniformly along both axis.
+   * If the optional aboutPoint parameter is given the scaling takes place
+   * about the given point.
+   * @see Matrix#scale
+   *
+   * @param {Number} sx The amount to scale by along the x axis or uniformly if no sy is given.
+   * @param {Number} [sy] The amount to scale by along the y axis.
+   * @param {Point} [aboutPoint] The point about which the scaling occurs. Defaults to (0,0).
+   * @returns A matrix transformation representing scaling by sx and sy.
+   * @type Matrix
+   */
+  Matrix.scale = function(sx, sy, aboutPoint) {
+    sy = sy || sx;
+
+    var scaleMatrix = Matrix(sx, 0, 0, sy);
+
+    if(aboutPoint) {
+      scaleMatrix =
+        Matrix.translation(aboutPoint.x, aboutPoint.y).concat(
+          scaleMatrix
+        ).concat(
+          Matrix.translation(-aboutPoint.x, -aboutPoint.y)
+        );
+    }
+
+    return scaleMatrix;
+  };
+
+  /**
+   * Returns a matrix that corresponds to a translation of tx, ty.
+   * @see Matrix#translate
+   *
+   * @param {Number} tx The amount to translate in the x direction.
+   * @param {Number} ty The amount to translate in the y direction.
+   * @return A matrix transformation representing a translation by tx and ty.
+   * @type Matrix
+   */
+  Matrix.translation = function(tx, ty) {
+    return Matrix(1, 0, 0, 1, tx, ty);
+  };
+
+  /**
+   * A constant representing the identity matrix.
+   * @name IDENTITY
+   * @fieldOf Matrix
+   */
+  Matrix.IDENTITY = Matrix();
+  /**
+   * A constant representing the horizontal flip transformation matrix.
+   * @name HORIZONTAL_FLIP
+   * @fieldOf Matrix
+   */
+  Matrix.HORIZONTAL_FLIP = Matrix(-1, 0, 0, 1);
+  /**
+   * A constant representing the vertical flip transformation matrix.
+   * @name VERTICAL_FLIP
+   * @fieldOf Matrix
+   */
+  Matrix.VERTICAL_FLIP = Matrix(1, 0, 0, -1);
+  
+  // Export to Unveil
+  uv.Point = Point;
+  uv.Matrix = Matrix;
+}());
+
+
 // Actor - Graphical object to be attached to the scene graph
 // =============================================================================
 
@@ -1535,19 +1332,137 @@ uv.Actor = function(properties) {
     localRotation: 0,
     fillStyle: '#000',
     strokeStyle: '#000',
-    visible: true,
-    preserveShape: false,
-    sticky: false
+    lineWidth: 1,
+    lineCap: 'butt',
+    lineJoin: 'miter',
+    globalAlpha: 1,
+    miterLimit: 10,
+    visible: true
   }, properties);
   
+  // init children
   this.replace('children', new uv.SortedHash());
+  
+  // Init motion tween container
+  this.tweens = {};
   
   // Under mouse cursor
   this.active = false;
+  
+  // Event handlers
+  this.handlers = {};
 };
 
-uv.Actor.prototype = Object.extend(uv.Node);
+// Registration point for custom actors
+uv.Actor.registeredActors = {};
 
+uv.Actor.prototype = uv.extend(uv.Node);
+
+
+// Bind event
+
+uv.Actor.prototype.bind = function(name, fn) {
+  if (!this.handlers[name]) {
+    this.handlers[name] = [];
+  }
+  this.handlers[name].push(fn);
+};
+
+
+// Trigger event
+
+uv.Actor.prototype.trigger = function(name) {
+  var that = this;
+  if (this.handlers[name]) {
+    _.each(this.handlers[name], function(fn) {
+      fn.apply(that, []);
+    });
+  }
+};
+
+
+// Generic factory method that creates an actor based on an Actor Spec
+
+uv.Actor.create = function(spec) {
+  var constructor = uv.Actor.registeredActors[spec.type];
+  if (!constructor) { 
+    throw "Actor type unregistered: '" + spec.type + "'";
+  }
+  return new constructor(spec);
+};
+
+
+// The actor's unique id
+
+uv.Actor.prototype.id = function() {
+  return this.p('id') || this.nodeId;
+};
+
+uv.Actor.prototype.add = function(spec) {
+  var actor;
+  
+  if (spec instanceof uv.Actor) {
+    actor = spec;
+  } else {
+    actor = uv.Actor.create(spec);
+  }
+  
+  if (!this.scene) {
+    throw "You can't add childs to actors that don't have a scene reference";
+  }
+  
+  // Register actor at the scene object
+  this.scene.registerActor(actor);
+  
+  // Register as a child
+  this.set('children', actor.id(), actor);
+  actor.parent = this;
+  
+  // Call init hook if defined
+  if (actor.init) {
+    actor.init();
+  }
+  
+  // Register children
+  if (spec.actors) {
+    _.each(spec.actors, function(actorSpec) {
+      actor.add(actorSpec);
+    });
+  }
+  return actor;
+};
+
+
+// Remove child by ID
+uv.Actor.prototype.remove = function(matcher) {
+  var that = this;
+  if (matcher instanceof Function) {
+    _.each(this.traverse(), function(actor) {
+      if (matcher(actor)) {
+        that.scene.remove(actor.id());
+      }
+    });
+  } else {
+    if (this.get('children', matcher)) {
+      // Remove child
+      this.all('children').del(matcher);
+      
+      // Remove from scene
+      delete this.scene.actors[matcher];
+      delete this.scene.interactiveActors[matcher];
+    }
+
+    // Children hunt
+    this.all('children').each(function(index, child) {
+      child.remove(matcher);
+    });    
+  }
+};
+
+
+uv.Actor.prototype.traverse = function() {
+  return this.scene.properties.traverser(this);
+};
 
 // Evaluates a property (in case of a function
 // the result of the function is returned)
@@ -1567,66 +1482,64 @@ uv.Actor.prototype.property = function(property, value) {
 uv.Actor.prototype.p = uv.Actor.prototype.property;
 
 
-// Recursively sets the scene reference to itself and all childs.
-// Registers an interactive node on the scene object if the user explicitly
-// declares the node as interactive, where interactivity conforms to activated
-// enabled interaction.
+// Registers a Tween on demand
 
-uv.Actor.prototype.setScene = function(scene) {
-  this.scene = scene;
-  if (this.properties.interactive) {
-    scene.interactiveActors.push(this);
-  }
-  if (this.all('children')) {
-    this.all('children').each(function(index, child) {
-      child.setScene(scene);
+uv.Actor.prototype.animate = function(property, value, duration, easer) {
+  var scene = this.scene;
+  
+  if (!this.tweens[property]) {
+    this.tweens[property] = new uv.Tween({
+      obj: this.properties,
+      property: property,
+      duration: duration || 1000
     });
+    
+    // Request a higher framerate for the transition
+    // and release it after completion.
+    if (scene.commands.RequestFramerate) {
+      this.tweens[property].bind('start', function() {
+        scene.execute(uv.cmds.RequestFramerate);
+      });
+      this.tweens[property].bind('finish', function() {
+        scene.unexecute(uv.cmds.RequestFramerate);
+      });      
+    }
   }
-};
-
-// Adds a new Actor as a child
-
-uv.Actor.prototype.add = function(child, key) {
-  var k = key ? key : this.childCount+=1;
-  this.set('children', k, child);
-  child.parent = this;
-  if (this.scene) {
-    child.setScene(this.scene);
-  }  
-  return child;
+  
+  if (easer) {
+    this.tweens[property].easer = uv.Tween[easer];
+  }
+  this.tweens[property].continueTo(value, duration || 1000);
+  return this.tweens[property];
 };
 
 
 // Dynamic Matrices
 // -----------------------------------------------------------------------------
 
-uv.Actor.prototype.tWorldParent = function() {
-  var m;
-  if (this.parent) {
-    m = new uv.Matrix2D(this.parent._tWorld);
-  } else {
-    m = new uv.Matrix2D();
-  }
-  return m;
-};
-
-
-uv.Actor.prototype.tWorld = function() {
-  var m = new uv.Matrix2D();
-  m.apply(this.tWorldParent());
-  m.translate(this.p('x'), this.p('y'));
-  m.rotate(this.p('rotation'));
-  m.scale(this.p('scaleX'), this.p('scaleY'));
-  return m;
-};
-
+// TODO: allow users to specify the transformation order (rotate, translate, scale)
 
 uv.Actor.prototype.tShape = function(x, y) {
-  var m = new uv.Matrix2D();
-  m.translate(this.p('localX'), this.p('localY'));
-  m.rotate(this.p('localRotation'));
-  m.scale(this.p('localScaleX'), this.p('localScaleY'));
-  return m;
+  return uv.Matrix()
+         .translate(this.p('localX'), this.p('localY'))
+         .rotate(this.p('localRotation'))
+         .scale(this.p('localScaleX'), this.p('localScaleY'));
+};
+
+uv.Actor.prototype.tWorldParent = function() {
+  if (this.parent) {
+    return this.parent._tWorld;
+  } else {
+    return uv.Matrix();
+  }
+};
+
+uv.Actor.prototype.tWorld = function() {
+  return uv.Matrix()
+         .concat(this.tWorldParent())
+         .translate(this.p('x'), this.p('y'))
+         .rotate(this.p('rotation'))
+         .scale(this.p('scaleX'), this.p('scaleY'));
 };
 
 // Compiles and caches the current World Transformation Matrix
@@ -1642,65 +1555,52 @@ uv.Actor.prototype.compileMatrix = function() {
   }
 };
 
-// Calculate WorldView Transformation Matrix
-
-uv.Actor.prototype.tWorldView = function(tView) {  
-  var t, pos,
-      view = this.properties.sticky ? new uv.Matrix2D() : tView;
-  
-  if (this.properties.preserveShape) {
-    t = new uv.Matrix2D(view);
-    t.apply(this._tWorld);
-    pos = t.mult(new uv.Vector(0,0));
-    t.reset();
-    t.translate(pos.x, pos.y);
-    t.apply(this.tShape());
-  } else {
-    t = this.tShape();
-    t.apply(view);
-    t.apply(this._tWorld);
-  }
-  
-  return t;
-};
-
 
 // Drawing, masking and rendering
 // -----------------------------------------------------------------------------
 
-uv.Actor.prototype.update = function() {};
+uv.Actor.prototype.update = function() {
+  // update motion tweens
+  _.each(this.tweens, function(t) {
+    t.tick();
+  });
+};
+
+uv.Actor.prototype.applyStyles = function(ctx) {
+  ctx.fillStyle = this.p('fillStyle');
+  ctx.strokeStyle = this.p('strokeStyle');
+  ctx.lineWidth = this.p('lineWidth');
+  ctx.lineCap = this.p('lineCap');
+  ctx.lineJoin = this.p('lineJoin');
+  ctx.globalAlpha = this.p('globalAlpha');
+  ctx.miterLimit = this.p('miterLimit');
+};
+
 uv.Actor.prototype.draw = function(ctx) {};
 
 uv.Actor.prototype.checkActive = function(ctx, mouseX, mouseY) {
-  var p = new uv.Vector(mouseX,mouseY),
-      t = new uv.Matrix2D(this._tWorld);
-  
+  var p = new uv.Point(mouseX,mouseY);
+    
   // TODO: Add proper check for statically rendered actors,
   //       based on this.scene.activeDisplay's view matrix  
-  
-  pnew = t.inverse().mult(p);
+  var pnew = this._tWorld.inverse().transformPoint(p);
   mouseX = pnew.x;
   mouseY = pnew.y;
   
-  if (this.hasBounds() && ctx.isPointInPath) {
+  if (this.bounds && ctx.isPointInPath) {
     this.drawBounds(ctx);
     if (ctx.isPointInPath(mouseX, mouseY))
       this.active = true;
     else
       this.active = false;
   }
-  return false;
+  return this.active;
 };
 
-
-uv.Actor.prototype.hasBounds = function() {
-  var bounds = this.p('bounds');
-  return bounds && bounds.length >= 3;
-};
-
+// Bounds used for mouse picking
 
 uv.Actor.prototype.drawBounds = function(ctx) {
-  var bounds = this.p('bounds'),
+  var bounds = this.bounds(),
       start, v;
   start = bounds.shift();
   ctx.beginPath();
@@ -1712,27 +1612,35 @@ uv.Actor.prototype.drawBounds = function(ctx) {
 };
 
 
-// Draws the Actor to a display
-
 uv.Actor.prototype.render = function(ctx, tView) {
-  var that = this,
-      t = this.tWorldView(tView);
-      
   if (!this.p('visible')) return;
-  
-  ctx.setTransform(t.elements[0], t.elements[1], t.elements[3], 
-                   t.elements[4], t.elements[2], t.elements[5]);
-  this.draw(ctx);
+  this.applyStyles(ctx);
+  this.transform(ctx, tView);
+  this.draw(ctx, tView);
 };
 
+
+// Applies the transformation matrix
+uv.Actor.prototype.transform = function(ctx, tView) {
+  var m = this.tShape().concat(tView).concat(this._tWorld),
+      t;
+  
+  if (this.p('transformMode') === 'coords') {
+    // Extract the translation of the matrix
+    t = m.transformPoint(uv.Point(0,0));
+    ctx.setTransform(1, 0, 0, 1, t.x, t.y);
+  } else {
+    ctx.setTransform(m.a, m.b, m.c, m.d, m.tx, m.ty);
+  }
+}
 uv.traverser = {};
 
-uv.traverser.BreadthFirst = function(scene) {
+uv.traverser.BreadthFirst = function(root) {
   var queue = [],
       nodes = [],
       node;
   
-  queue.push(scene); // enqueue
+  queue.push(root); // enqueue
   while (queue.length > 0) {
     node = queue.shift(); // dequeue
     if (node.p('visible')) {
@@ -1746,13 +1654,12 @@ uv.traverser.BreadthFirst = function(scene) {
   return nodes;
 };
 
-
-uv.traverser.DepthFirst = function(scene) {
+uv.traverser.DepthFirst = function(root) {
   var stack = [],
       nodes = [],
       node;
   
-  stack.push(scene);
+  stack.push(root);
   while (stack.length > 0) {
     node = stack.pop();
     if (node.p('visible')) {
@@ -1766,86 +1673,89 @@ uv.traverser.DepthFirst = function(scene) {
   return nodes;
 };
 
-uv.ZoomBehavior = function(display) {
-  function zoom(zoom, rx, ry) {
-    display.tView.translate(rx, ry);
-    display.tView.scale(zoom, zoom);
-    display.tView.translate(-rx, -ry);
+uv.behaviors = {};
+
+uv.behaviors.adjust = function(display, m) {
+  var b = display.bounds();
+  // clamp to scene boundaries
+  if (display.bounded) {
+    m.a = m.d = Math.max(1, m.a);
+    m.tx = Math.max(b.x, Math.min(0, m.tx));
+    m.ty = Math.max(b.y, Math.min(0, m.ty));
   }
-  display.$canvas.bind('mousewheel', function(event, delta) {
-    display.zoom += 0.02 * delta;
-    zoom(1+0.02 * delta, display.scene.mouseX, display.scene.mouseY);
+  return m;
+};
+
+uv.behaviors.Zoom = function(display) {
+  function mouseWheel(e) {
+    var delta = (e.wheelDelta / 120 || -e.detail),
+        m = display.tView.scale(
+          1+0.005 * delta,
+          1+0.005 * delta,
+          uv.Point(display.scene.mouseX, display.scene.mouseY)
+        );
+    display.tView = (delta < 0) ? uv.behaviors.adjust(display, m) : m;
     display.callbacks.viewChange.call(display);
-  });
+  }
+  display.canvas.addEventListener("mousewheel", mouseWheel, false);
+  display.canvas.addEventListener("DOMMouseScroll", mouseWheel, false);
 };
 
-
-uv.PanBehavior = function(display) {
-  var paning = false,
-      mouseX, mouseY,
-      startX, startY,
-      offsetX = 0,
-      offsetY = 0,
-      prevOffsetX = 0,
-      prevOffsetY = 0;
+uv.behaviors.Pan = function(display) {
+  var pos, // initial mouse position
+      view, // cached view matrix
+      panning = false;
   
-  display.$canvas.bind('mousedown', function(event) {
-    paning = true;
-    startX = display.mouseX;
-    startY = display.mouseY;
-    prevOffsetX = 0;
-    prevOffsetY = 0;
-  });
+  function mouseDown() {
+    p = uv.Point(display.mouseX, display.mouseY);
+    view = display.tView;
+    panning = true;
+  }
   
-  display.$canvas.bind('mouseup', function(event) {
-    paning = false;
-  });
+  function mouseMove() {
+    if (!panning) return;
+    var x = (display.mouseX - p.x),
+        y = (display.mouseY - p.y),
+        m = uv.Matrix.translation(x, y).concat(view);
+    display.tView = uv.behaviors.adjust(display, m);
+  }
   
-  display.$canvas.bind('mousemove', function(event) {
-    if (paning) {
-      offsetX = display.mouseX-startX;
-      offsetY = display.mouseY -startY;
-      
-      deltaX = offsetX - prevOffsetX;
-      deltaY = offsetY - prevOffsetY;
-      
-      prevOffsetX = offsetX;
-      prevOffsetY = offsetY;
-      
-      display.tView.translate(deltaX,deltaY);
-      display.callbacks.viewChange.call(display);
-    }
-  });
+  function release() {
+    panning = false;
+  }
+  
+  display.canvas.addEventListener("mousedown", mouseDown, false);
+  display.canvas.addEventListener("mousemove", mouseMove, false);
+  display.canvas.addEventListener("mouseup", release, false);
+  display.canvas.addEventListener("mouseout", release, false);
 };
-
-
 uv.Display = function(scene, opts) {
   var that = this;
   
   this.scene = scene;
+  this.element = document.getElementById(opts.container);
+  this.canvas = document.createElement("canvas");
+  this.canvas.setAttribute('width', opts.width);
+  this.canvas.setAttribute('height', opts.height);
+  this.canvas.style.position = 'relative';
+  this.element.appendChild(this.canvas);
 
-  this.$element = opts.container;
-  this.$canvas = $('<canvas width="'+opts.width+'" ' +
-                    'height="'+opts.height+'" style="position: relative;"></canvas>');
-  
   this.width = opts.width;
   this.height = opts.height;
   
-  this.$element.append(this.$canvas);
-  this.ctx = this.$canvas[0].getContext("2d");
+  this.bounded = opts.bounded || true;
   
-  this.tView = new uv.Matrix2D();
+  this.ctx = this.canvas.getContext("2d");
   
-  // Provides access to the current zoom value
-  this.zoom = 1;
+  this.tView = uv.Matrix();
   
   // attach behaviors
   if (opts.zooming) {
-    this.zoombehavior = new uv.ZoomBehavior(this);
+    this.zoombehavior = new uv.behaviors.Zoom(this);
   }
   
-  if (opts.paning) {
-    this.panbehavior = new uv.PanBehavior(this);
+  if (opts.panning) {
+    this.panbehavior = new uv.behaviors.Pan(this);
   }
   
   // Callbacks
@@ -1854,34 +1764,47 @@ uv.Display = function(scene, opts) {
   
   // Register mouse events
   function mouseMove(e) {
-    var mat = new uv.Matrix2D(that.tView),
+    var mat = that.tView.inverse(),
         pos;
     
-    mat.invert();
     if (e.offsetX) {
-      pos = new uv.Vector(e.offsetX, e.offsetY);
+      pos = new uv.Point(e.offsetX, e.offsetY);
     } else if (e.layerX) {
-      pos = new uv.Vector(e.layerX, e.layerY);
+      pos = new uv.Point(e.layerX, e.layerY);
     }
     
     if (pos) {
       that.mouseX = pos.x;
       that.mouseY = pos.y;    
 
-      worldPos = mat.mult(pos);
+      worldPos = mat.transformPoint(pos);
       that.scene.mouseX = parseInt(worldPos.x, 10);
       that.scene.mouseY = parseInt(worldPos.y, 10);
-
       that.scene.activeDisplay = that;
-      
     }
   }
   
-  this.$canvas.bind('mousemove', mouseMove);
-  this.$canvas.bind('mouseout', function() {
+  function mouseOut() {
     that.scene.mouseX = NaN;
     that.scene.mouseY = NaN;
-  });
+  }
+  
+  function interact() {
+    that.scene.trigger('interact');
+  }
+  
+  function click() {
+    _.each(that.scene.activeActors, function(a) {
+      a.trigger('click');
+    });
+  }
+  
+  this.canvas.addEventListener("mousemove", interact, false);
+  this.canvas.addEventListener("DOMMouseScroll", interact, false);
+  this.canvas.addEventListener("mousemove", mouseMove, false);
+  this.canvas.addEventListener("mousewheel", interact, false);
+  this.canvas.addEventListener("mouseout", mouseOut, false);
+  this.canvas.addEventListener("click", click, false);
 };
 
 // Register callbacks
@@ -1891,14 +1814,31 @@ uv.Display.prototype.on = function(name, fn) {
 
 // Convert world pos to display pos
 
-uv.Display.prototype.displayPos = function(pos) {
-  return this.tView.mult(pos);
+uv.Display.prototype.displayPos = function(point) {
+  return this.tView.transformPoint(pos);
+};
+
+uv.Display.prototype.zoom = function(point) {
+  return this.tView.a;
 };
 
 // Convert display pos to world pos
 
 uv.Display.prototype.worldPos = function(pos) {
-  return this.tView.inverse().mult(pos);
+  return this.tView.inverse().transformPoint(pos);
+};
+
+// Yield bounds used for viewport constraining
+
+uv.Display.prototype.bounds = function() {
+  // Consider area that doesn't fit on the display
+  var dx = Math.max(0, this.scene.p('width')-this.width),
+      dy = Math.max(0, this.scene.p('width')-this.width);
+  
+  return {
+      x: (1 - this.tView.a) * this.width - this.tView.a*dx,
+      y: (1 - this.tView.a) * this.height - this.tView.a*dy
+  };
 };
 
 // Updates the display (on every frame)
@@ -1939,13 +1879,13 @@ uv.cmds.RequestFramerate.className = 'RequestFramerate';
 
 uv.cmds.RequestFramerate.prototype.execute = function() {
   this.requests += 1;
-  this.scene.framerate = this.framerate;
+  this.scene.setFramerate(this.framerate);
 };
 
 uv.cmds.RequestFramerate.prototype.unexecute = function() {
   this.requests -= 1;
   if (this.requests <= 0) {
-    this.scene.framerate = this.originalFramerate;
+    this.scene.setFramerate(this.originalFramerate);
   }
 };
 // Scene
@@ -1955,14 +1895,14 @@ uv.Scene = function(properties) {
   var that = this;
   
   // super call
-  uv.Actor.call(this);
+  uv.Actor.call(this, properties);
   
   _.extend(this.properties, {
     width: 0,
     height: 0,
     fillStyle: '#fff',
-    element: '#canvas',
-    framerate: 10,
+    idleFramerate: 0,
+    framerate: 50,
     traverser: uv.traverser.DepthFirst
   }, properties);
   
@@ -1970,7 +1910,10 @@ uv.Scene = function(properties) {
   this.mouseY = NaN;
   
   // Keeps track of actors that capture mouse events
-  this.interactiveActors = [];
+  this.interactiveActors = {};
+  
+  // Currently active actors (under cursor)
+  this.activeActors = [];
   
   // Keep track of all Actors
   this.actors = {};
@@ -1978,106 +1921,143 @@ uv.Scene = function(properties) {
   // The scene property references the Scene an Actor belongs to
   this.scene = this;
   
-  // Commands hook in here
-  this.commands = {};
-  
   // Attached Displays
   this.displays = [];
-  _.each(properties.displays, function(display) {
-    that.displays.push(new uv.Display(that, display));
-  });
+  if (properties.displays) {
+    _.each(properties.displays, function(display) {
+      that.displays.push(new uv.Display(that, display));
+    });    
+  }
   
   this.activeDisplay = this.displays[0];
-  
   this.fps = 0;
-  this.framerate = this.p('framerate');
   
-  // Callbacks
-  this.callbacks = {};
-  this.callbacks.frame = function() {};
-  this.callbacks.start = function() {};
-  this.callbacks.stop  = function() {};
-};
-
-uv.Scene.prototype = Object.extend(uv.Actor);
-
-// Register callbacks
-uv.Scene.prototype.on = function(name, fn) {
-  this.callbacks[name] = fn;
-};
-
-uv.Scene.prototype.get = function(key) {
-  return this.actors[key];
-};
-
-uv.Scene.prototype.add = function(child) {
-  child.setScene(this);
+  this.framerate = this.p('idleFramerate');
   
-  uv.Actor.prototype.add.call(this, child);
-  return child;
-};
-
-uv.Scene.prototype.add = function(child, key) {
-  var k = key ? key : this.childCount+=1;
+  // Commands hook in here
+  this.commands = {};
+  this.register(uv.cmds.RequestFramerate, {framerate: this.p('framerate')});
   
-  this.set('children', k, child);
-  this.actors[k] = child;
+  // Register actors
+  if (properties.actors) {
+    _.each(properties.actors, function(actorSpec) {
+      that.add(actorSpec);
+    });
+  }
   
-  // Updates all childs that do not have a scene reference yet
-  child.setScene(this);
-  return child;
-};
-
-uv.Scene.prototype.start = function(options) {
-  var that = this,
-      opts = { framerate: 50, idleFramerate: 10 };
+  var timeout;
+  var requested = false;
+  
+  // Listen to interaction
+  this.bind('interact', function() {
+      if (!requested) {
+        that.execute(uv.cmds.RequestFramerate);
+        requested = true;
+      }
       
-  _.extend(opts, options);
+      clearTimeout(timeout);
+      timeout = setTimeout(function() {
+        requested = false;
+        that.unexecute(uv.cmds.RequestFramerate);
+      }, 1000);
+  });
+};
+
+uv.Scene.prototype = uv.extend(uv.Actor);
+
+uv.Scene.prototype.registerActor = function(actor) {
+  var id = actor.id();
+  if (this.actors[id])
+    throw "ID '" + id + "' already registered.";
+  
+  // Set the scene reference
+  actor.scene = this;
+  
+  // Register actor in scene space
+  this.actors[id] = actor;
+  
+  // Register as interactive
+  if (actor.p('interactive')) {
+    this.interactiveActors[actor.id()] = actor;
+  }
+};
+
+uv.Scene.prototype.get = function() {
+  if (arguments.length === 1) {
+    return this.actors[arguments[0]];
+  } else {
+    // Delegate to Node#get
+    return uv.Node.prototype.get.call(this, arguments[0], arguments[1]);
+  }
+};
+
+uv.Scene.prototype.start = function() {
   this.running = true;
+  this.trigger('start');
   this.loop();
   this.checkActiveActors();
 };
 
-// the draw loop
+uv.Scene.prototype.setFramerate = function(framerate) {
+  this.framerate = framerate;
+  clearTimeout(this.nextLoop);
+  clearTimeout(this.nextPick);
+  this.loop();
+  this.checkActiveActors();
+};
+
+// The draw loop
+
 uv.Scene.prototype.loop = function() {
   var that = this,
       start, duration;
   
   if (this.running) {
-    start = new Date().getTime();
-    
-    
-    this.callbacks.frame();
-    this.compileMatrix();
-    
-    this.refreshDisplays();
-    
-    duration = new Date().getTime()-start;
-    
     this.fps = (1000/duration < that.framerate) ? 1000/duration : that.framerate;
-    setTimeout(function() { that.loop(); }, (1000/that.framerate)-duration);
+    start = new Date().getTime();
+    this.trigger('frame');
+    this.compileMatrix();
+    this.refreshDisplays();
+    duration = new Date().getTime()-start;
+    if (this.framerate > 0) {
+      this.nextLoop = setTimeout(function() { that.loop(); }, (1000/that.framerate)-duration);
+    }
   }
 };
 
 uv.Scene.prototype.stop = function(options) {
   this.running = false;
-};
-
-uv.Scene.prototype.traverse = function() {
-  return this.properties.traverser(this);
+  this.trigger('stop');
 };
 
 uv.Scene.prototype.checkActiveActors = function() {
   var ctx = this.displays[0].ctx,
-      that = this;
+      that = this,
+      prevActiveActors = this.activeActors;
   
   if (this.running) {
     if (this.scene.mouseX !== NaN) {
+      
+      this.activeActors = [];
       _.each(this.interactiveActors, function(actor) {
-        actor.checkActive(ctx, that.scene.mouseX, that.scene.mouseY);
+        var active = actor.checkActive(ctx, that.scene.mouseX, that.scene.mouseY);
+        if (active) {
+          that.activeActors.push(actor);
+          if (!_.include(prevActiveActors, actor)) {
+            actor.trigger('mouseover');
+          }
+        } else {
+          if (_.include(prevActiveActors, actor)) {
+            actor.trigger('mouseout');
+          }
+        }
       });
     }
-    setTimeout(function() { that.checkActiveActors(); }, (1000/10));
+    if (that.framerate > 0) {
+      this.nextPick = setTimeout(function() {
+        that.checkActiveActors(); 
+      }, 1000/Math.min(that.framerate, 15));
+    }
   }
 };
 
@@ -2097,47 +2077,15 @@ uv.Scene.prototype.register = function(cmd, options) {
 
 uv.Scene.prototype.execute = function(cmd) {
   this.commands[cmd.className].execute();
-}
+};
 
 uv.Scene.prototype.unexecute = function(cmd) {
   this.commands[cmd.className].unexecute();
-}
-/**********************************************************************
-TERMS OF USE - EASING EQUATIONS
-Open source under the BSD License.
-Copyright (c) 2001 Robert Penner
-JavaScript version copyright (c) 2006 by Philippe Maegerman
-Adapted to work along with Processing.js (c) 2009 by Michael Aufreiter
-
-All rights reserved.
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-   * Redistributions of source code must retain the above copyright
-notice, this list of conditions and the following disclaimer.
-   * Redistributions in binary form must reproduce the above
-copyright notice, this list of conditions and the following disclaimer
-in the documentation and/or other materials provided with the
-distribution.
-   * Neither the name of the author nor the names of contributors may
-be used to endorse or promote products derived from this software
-without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
-*****************************************/
+};
+// Tween
+// =============================================================================
+//
+// Adapted from EASING EQUATIONS (R. Penner) and JSTween (P. Maegerman)
 
 uv.Tween = function(opts) {
   this.prop = opts.property;
@@ -2146,18 +2094,16 @@ uv.Tween = function(opts) {
   this._pos = this.begin;
   this.setDuration(opts.duration);
   
-  this.func = opts.easer || uv.Tween.strongEaseInOut;
+  this.easer = opts.easer || uv.Tween.strongEaseInOut;
   this.setFinish(opts.finish || opts.obj[this.prop]);
   
-  // callbacks
-  this.callbacks = {};
-  this.callbacks.start = function() {  };
-  this.callbacks.finish = function() {  };
+  // event handlers
+  this.handlers = {};
 };
 
 uv.Tween.prototype = {
   obj: new Object(),
-  func: function (t, b, c, d) { return c*t/d + b; },
+  easer: function (t, b, c, d) { return c*t/d + b; },
   begin: 0,
   change: 0,
   prevTime: 0,
@@ -2172,8 +2118,21 @@ uv.Tween.prototype = {
   _finish: 0,
   name: '',
   suffixe: '',
-  on: function(name, fn) {
-    this.callbacks[name] = fn;
+  // Bind event handler
+  bind: function(name, fn) {
+    if (!this.handlers[name]) {
+      this.handlers[name] = [];
+    }
+    this.handlers[name].push(fn);
+  },
+  // Trigger event
+  trigger: function(name) {
+    var that = this;
+    if (this.handlers[name]) {
+      _.each(this.handlers[name], function(fn) {
+        fn.apply(that, []);
+      });
+    }
   },
   setTime: function(t) {
   	this.prevTime = this._time;
@@ -2185,8 +2144,7 @@ uv.Tween.prototype = {
   		} else {
   			this._time = this._duration;
   			this.update();
-        
-        this.stop(); // CHECK!
+        this.stop();
   		}
   	} else if (t < 0) {
   		this.rewind();
@@ -2200,7 +2158,7 @@ uv.Tween.prototype = {
   	return this._time;
   },
   setDuration: function(d){
-  	this._duration = (d == null || d <= 0) ? 100000 : d;
+  	this._duration = (d == null || d <= 0) ? 0.2 : d / 1000;
   },
   getDuration: function(){
   	return this._duration;
@@ -2213,7 +2171,7 @@ uv.Tween.prototype = {
   },
   getPosition: function(t) {
   	if (t == undefined) t = this._time;
-  	return this.func(t, this.begin, this.change, this._duration);
+  	return this.easer(t, this.begin, this.change, this._duration);
   },
   setFinish: function(f) {
   	this.change = f - this.begin;
@@ -2224,7 +2182,7 @@ uv.Tween.prototype = {
   isPlaying: function() {
     return this._playing;
   },
-  init: function(obj, prop, func, begin, finish, duration, suffixe) {
+  init: function(obj, prop, easer, begin, finish, duration, suffixe) {
   	if (!arguments.length) return;
   	this._listeners = new Array();
   	this.addListener(this);
@@ -2233,8 +2191,8 @@ uv.Tween.prototype = {
   	this.begin = begin;
   	this._pos = begin;
   	this.setDuration(duration);
-  	if (func!=null && func!='') {
-  		this.func = func;
+  	if (easer!=null && easer!='') {
+  		this.easer = easer;
   	}
   	this.setFinish(finish);
   },
@@ -2242,7 +2200,7 @@ uv.Tween.prototype = {
   start: function() {
   	this.rewind();
   	this._playing = true;
-  	this.callbacks.start();
+  	this.trigger('start');
   },
   rewind: function(t) {
   	this.reset();
@@ -2271,9 +2229,13 @@ uv.Tween.prototype = {
   },
   stop: function() {
     this._playing = false;    
-    this.callbacks.finish();
+    this.trigger('finish');
   },
   continueTo: function(finish, duration) {
+    if (this.isPlaying()) {
+      this.trigger('finish');
+    }
+    
   	this.begin = this._pos;
   	this.setFinish(finish);
   	if (this._duration != undefined) {
@@ -2301,7 +2263,7 @@ uv.Tween.prototype = {
 uv.Tween.backEaseIn = function(t,b,c,d,a,p) {
 	if (s == undefined) var s = 1.70158;
 	return c*(t/=d)*t*((s+1)*t - s) + b;
-}
+};
 
 uv.Tween.backEaseOut = function(t,b,c,d,a,p) {
 	if (s === undefined) var s = 1.70158;
@@ -2315,42 +2277,45 @@ uv.Tween.backEaseInOut = function(t,b,c,d,a,p) {
 };
 
 uv.Tween.elasticEaseIn = function(t,b,c,d,a,p) {
+  var s;
 	if (t==0) return b;  
 	if ((t/=d)==1) return b+c;  
-	if (!p) p=d*.3;
+	if (!p) p=d*0.3;
 	if (!a || a < Math.abs(c)) {
-		a=c; var s=p/4;
+		a=c; s=p/4;
 	}
 	else 
-		var s = p/(2*Math.PI) * Math.asin (c/a);
+		s = p/(2*Math.PI) * Math.asin (c/a);
 
 	return -(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
 };
 
 uv.Tween.elasticEaseOut = function (t,b,c,d,a,p) {
-		if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*.3;
-		if (!a || a < Math.abs(c)) { a=c; var s=p/4; }
-		else var s = p/(2*Math.PI) * Math.asin (c/a);
-		return (a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b);
+  var s;
+	if (t==0) return b;  if ((t/=d)==1) return b+c;  if (!p) p=d*0.3;
+	if (!a || a < Math.abs(c)) { a=c; s=p/4; }
+	else s = p/(2*Math.PI) * Math.asin (c/a);
+	return (a*Math.pow(2,-10*t) * Math.sin( (t*d-s)*(2*Math.PI)/p ) + c + b);
 };
 
 uv.Tween.elasticEaseInOut = function (t,b,c,d,a,p) {
-	if (t==0) return b;  if ((t/=d/2)==2) return b+c;  if (!p) var p=d*(.3*1.5);
-	if (!a || a < Math.abs(c)) {var a=c; var s=p/4; }
-	else var s = p/(2*Math.PI) * Math.asin (c/a);
-	if (t < 1) return -.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
-	return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*.5 + c + b;
+  var s;
+	if (t==0) return b;  if ((t/=d/2)==2) return b+c;  if (!p) p=d*(0.3*1.5);
+	if (!a || a < Math.abs(c)) { a=c; s=p/4; }
+	else s = p/(2*Math.PI) * Math.asin (c/a);
+	if (t < 1) return -0.5*(a*Math.pow(2,10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )) + b;
+	return a*Math.pow(2,-10*(t-=1)) * Math.sin( (t*d-s)*(2*Math.PI)/p )*0.5 + c + b;
 };
 
 uv.Tween.bounceEaseOut = function(t,b,c,d) {
 	if ((t/=d) < (1/2.75)) {
 		return c*(7.5625*t*t) + b;
 	} else if (t < (2/2.75)) {
-		return c*(7.5625*(t-=(1.5/2.75))*t + .75) + b;
+		return c*(7.5625*(t-=(1.5/2.75))*t + 0.75) + b;
 	} else if (t < (2.5/2.75)) {
-		return c*(7.5625*(t-=(2.25/2.75))*t + .9375) + b;
+		return c*(7.5625*(t-=(2.25/2.75))*t + 0.9375) + b;
 	} else {
-		return c*(7.5625*(t-=(2.625/2.75))*t + .984375) + b;
+		return c*(7.5625*(t-=(2.625/2.75))*t + 0.984375) + b;
 	}
 };
 
@@ -2359,8 +2324,8 @@ uv.Tween.bounceEaseIn = function(t,b,c,d) {
 };
 
 uv.Tween.bounceEaseInOut = function(t,b,c,d) {
-	if (t < d/2) return Tween.bounceEaseIn (t*2, 0, c, d) * .5 + b;
-	else return Tween.bounceEaseOut (t*2-d, 0, c, d) * .5 + c*.5 + b;
+	if (t < d/2) return Tween.bounceEaseIn (t*2, 0, c, d) * 0.5 + b;
+	else return Tween.bounceEaseOut (t*2-d, 0, c, d) * 0.5 + c*0.5 + b;
 };
 
 uv.Tween.strongEaseInOut = function(t,b,c,d) {
@@ -2392,33 +2357,41 @@ uv.Tween.strongEaseInOut = function(t,b,c,d) {
 	if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
 	return c/2*((t-=2)*t*t*t*t + 2) + b;
 };
-// Bar
+// Rect
 // =============================================================================
 
-uv.Bar = function(properties) {
+uv.Rect = function(properties) {
   // super call
   uv.Actor.call(this, _.extend({
     width: 0,
     height: 0,
-    strokeWeight: 2,
+    fillStyle: '#777',
     strokeStyle: '#000',
-    fillStyle: '#ccc',
-    bounds: function() {
-      return [
-        {x: 0, y: 0},
-        {x: this.p('width'), y: 0},
-        {x: this.p('width'), y: this.p('height')},
-        {x: 0, y: this.p('height')}
-      ];
-    }
+    lineWidth: 0
   }, properties));
 };
 
-uv.Bar.prototype = Object.extend(uv.Actor);
+uv.Actor.registeredActors.rect = uv.Rect;
 
-uv.Bar.prototype.draw = function(ctx) {
-  ctx.fillStyle = this.p('fillStyle');
-  ctx.fillRect(0, 0, this.p('width'), this.p('height'));
+uv.Rect.prototype = uv.extend(uv.Actor);
+
+uv.Rect.prototype.bounds = function() {
+  return [
+    { x: 0, y: 0 },
+    { x: this.p('width'), y: 0 },
+    { x: this.p('width'), y: this.p('height') },
+    { x: 0, y: this.p('height') }
+  ];
+};
+
+uv.Rect.prototype.draw = function(ctx, tView) {
+  if (this.p('fillStyle')) {
+    ctx.fillRect(0, 0, this.p('width'), this.p('height'));
+  }
+  
+  if (this.p('lineWidth') > 0) {
+    ctx.strokeRect(0, 0, this.p('width'), this.p('height'));
+  }
 };
 
 // Label
@@ -2436,55 +2409,12 @@ uv.Label = function(properties) {
   }, properties));
 };
 
-uv.Label.prototype = Object.extend(uv.Actor);
+uv.Actor.registeredActors.label = uv.Label;
 
-uv.Label.prototype.draw = function(ctx) {
-  // Draw the label on a background rectangle
+uv.Label.prototype = uv.extend(uv.Actor);
+
+uv.Label.prototype.draw = function(ctx, tView) {
   ctx.font = this.p('font');
-  if (this.p('background')) {
-    var textWidth = ctx.measureText(this.p('text')).width;
-    
-    ctx.strokeStyle = this.p('strokeStyle');
-    ctx.fillStyle = this.p('backgroundStyle');
-        
-    function roundedRect(ctx, x, y, width, height, radius, stroke) {
-      ctx.beginPath();
-      ctx.moveTo(x + radius, y);
-      ctx.lineTo(x + width - radius, y);
-      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-      ctx.lineTo(x + width, y + height - radius);
-      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-      ctx.lineTo(x + radius, y + height);
-      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-      ctx.lineTo(x, y + radius);
-      ctx.quadraticCurveTo(x, y, x + radius, y);
-      ctx.closePath();
-      if (stroke)
-        ctx.stroke();
-      ctx.fill();
-    }
-    
-    var x, y, width, height;
-    
-    if (this.p('textAlign') == 'start') {
-      x = -5; y = -13;
-      width = textWidth+10;
-      height = 20;
-    } else if (this.p('textAlign') == 'center') {
-      x = -textWidth/2-5; y = -13;
-      width = textWidth+10;
-      height = 20;
-    } else if (this.p('textAlign') == 'right') {
-      x = -textWidth-5; y = -13;
-      width = textWidth+10;
-      height = 20;
-    }
-    
-    ctx.lineWidth = this.p('lineWidth');
-    roundedRect(ctx, x, y, width, height, 5, this.p('lineWidth') > 0);
-  }
-  
-  ctx.fillStyle = this.p('fillStyle');
   
   ctx.textAlign = this.p('textAlign');
   ctx.fillText(this.p('text'), 0, 0);
@@ -2499,21 +2429,24 @@ uv.Circle = function(properties) {
     radius: 20,
     strokeWeight: 2,
     lineWidth: 3,
-    strokeStyle: '#fff',
-    bounds: function() {
-      return [
-        { x: -this.p('radius'), y: -this.p('radius') },
-        { x: this.p('radius'),  y: -this.p('radius') },
-        { x: this.p('radius'),  y: this.p('radius') },
-        { x: -this.p('radius'), y: this.p('radius') }
-      ];
-    }
+    strokeStyle: '#fff'
   }, properties));
 };
 
-uv.Circle.prototype = Object.extend(uv.Actor);
+uv.Actor.registeredActors.circle = uv.Circle;
 
-uv.Circle.prototype.draw = function(ctx) {
+uv.Circle.prototype = uv.extend(uv.Actor);
+
+uv.Circle.prototype.bounds = function() {
+  return [
+    { x: -this.p('radius'), y: -this.p('radius') },
+    { x: this.p('radius'),  y: -this.p('radius') },
+    { x: this.p('radius'),  y: this.p('radius') },
+    { x: -this.p('radius'), y: this.p('radius') }
+  ];
+};
+
+uv.Circle.prototype.draw = function(ctx, tView) {  
   ctx.fillStyle = this.p('fillStyle');
   ctx.strokeStyle = this.p('strokeStyle');
   ctx.lineWidth = this.p('lineWidth');
@@ -2521,7 +2454,9 @@ uv.Circle.prototype.draw = function(ctx) {
   ctx.beginPath();
   ctx.arc(0,0,this.p('radius'),0,Math.PI*2, false);
   ctx.closePath();
-  ctx.stroke();
+  if (this.p('lineWidth') > 0) {
+    ctx.stroke();
+  }
   ctx.fill();
 };
 
@@ -2532,86 +2467,65 @@ uv.Path = function(properties) {
   // super call
   uv.Actor.call(this, _.extend({
     points: [],
-    strokeWeight: 2,
-    strokeStyle: '#000',
-    fillStyle: '#ccc'
+    lineWidth: 1,
+    strokeStyle: '#000'
   }, properties));
+  
+  this.transformedPoints = this.points = [].concat(this.p('points'));
 };
 
-uv.Path.prototype = Object.extend(uv.Actor);
+uv.Actor.registeredActors.path = uv.Path;
 
-uv.Path.prototype.draw = function(ctx) {
-  var points = [].concat(this.p('points')),
+uv.Path.prototype = uv.extend(uv.Actor);
+
+uv.Path.prototype.transform = function(ctx, tView) {
+  if (this.p('transformMode') === 'coords') {
+    var m = this.tShape().concat(tView).concat(this._tWorld);
+    
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    this.transformedPoints = _.map(this.points, function(p) {
+      var tp   = m.transformPoint(p),
+          tcp1 = m.transformPoint(uv.Point(p.cp1x, p.cp1y)),
+          tcp2 = m.transformPoint(uv.Point(p.cp2x, p.cp2y)),
+          result;
+      result = {x: tp.x, y: tp.y};
+      if (p.cp1x && p.cp1y) {
+        result.cp1x = tcp1.x;
+        result.cp1y = tcp1.y;        
+      }
+      if (p.cp2x && p.cp2y) {
+        result.cp2x = tcp2.x;
+        result.cp2y = tcp2.y;        
+      }
+      return result;
+    });
+  } else {
+    uv.Actor.prototype.transform.call(this, ctx, tView);
+  }
+};
+
+
+uv.Path.prototype.draw = function(ctx, tView) {  
+  var points = [].concat(this.transformedPoints),
       v;
   
-  if (this.p('points').length >= 1) {
+  if (points.length >= 1) {
     ctx.beginPath();
-    ctx.moveTo(0, 0);
+    v = points.shift();
+    ctx.moveTo(v.x, v.y);
     while (v = points.shift()) {
-      ctx.lineTo(v.x, v.y);
+      if (v.cp1x && v.cp2x) {
+        ctx.bezierCurveTo(v.cp1x, v.cp1y, v.cp2x,v.cp2y, v.x, v.y);
+      } else if (v.cp1x) {
+        ctx.quadraticCurveTo(v.cp1x, v.cp1y, v.x, v.y);
+      } else {
+        ctx.lineTo(v.x, v.y);
+      }
     }
-    ctx.strokeStyle = this.p('strokeStyle');
     ctx.stroke();
+    ctx.closePath();
   }
 };
-
-// Abstract Visualization
-// ----------------------------------------------------------------------------
-// 
-// Functionality is shared with all implemented visualizations
-
-uv.Visualization = new Class({
-  constructor: function (collection, options) {
-      this.collection = collection;
-      this.measures = options.measures;
-      this.params = options.params;
-      this.$canvas = options.canvas || $('#canvas');
-      
-      // default margin
-      this.margin = {top: 20, right: 20, bottom: 20, left: 20};
-  },
-  // Checks if the constructed instance conforms to the visualization spec
-  isValid: function() {
-    var that = this,
-        idx = 0, // measure index
-        valid = true;
-    
-    // checks for a given measure if it conforms to a given spec
-    function isComplient(idx, mspec) {
-      var p = that.property(idx);
-
-      // handle optional measures
-      if (mspec.optional && !p)
-        return true;
-      
-      return (p && mspec.types.indexOf(p.type) >= 0 && (p.unique === mspec.unique || mspec.unique === undefined));
-    }
-    
-    $.each(this.constructor.spec.measures, function(index, mspec) {
-      var count;
-      if (mspec.cardinality === "*") {
-        count = that.measures.length-idx; // remaining unchecked measures
-      } else {
-        count = mspec.cardinality;
-      }
-      for (var i=0; i<count; i++) {
-        if (!isComplient(idx, mspec)) {
-          valid = false;
-        }
-        idx += 1;
-      }
-    });
-    
-    return idx >= this.measures.length ? valid : false;
-  },
-  // returns a property object at given index i
-  property: function(i) {
-    return this.collection.get('properties', this.measures[i]);
-  },
-  render: function() {
-    this.$canvas.html('render() is not implemented.');
-  }
-});
 
 // export namespace
 if (root !== 'undefined') root.uv = uv;

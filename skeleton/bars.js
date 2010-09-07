@@ -1,30 +1,7 @@
 (function() {
-  var Bars, MovingBar;
-  var __extends = function(child, parent) {
-    var ctor = function(){};
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor();
-    child.prototype.constructor = child;
-    if (typeof parent.extended === "function") parent.extended(child);
-    child.__superClass__ = parent.prototype;
-  }, __bind = function(func, context) {
+  var Bars;
+  var __bind = function(func, context) {
     return function(){ return func.apply(context, arguments); };
-  };
-  MovingBar = function(properties) {
-    uv.Bar.call(this, properties);
-    this.th = new uv.Tween({
-      obj: this.properties,
-      property: 'height',
-      duration: 1.5
-    });
-    return this;
-  };
-  __extends(MovingBar, uv.Bar);
-  MovingBar.prototype.updateHeight = function(h) {
-    return this.th.continueTo(h, 1.5);
-  };
-  MovingBar.prototype.update = function() {
-    return this.th.tick();
   };
   Bars = function(_a, _b) {
     this.params = _b;
@@ -43,7 +20,7 @@
     return this.scene.all('children').each(__bind(function(index, bar) {
       var val;
       val = this.items.at(index).value(property);
-      bar.updateHeight(-parseInt(this.scale(val), 10));
+      bar.animate('height', -parseInt(this.scale(val), 10));
       return bar.p('fillStyle', function() {
         return this.active ? 'orange' : colors(val).color;
       });
@@ -55,7 +32,7 @@
       traverser: uv.traverser.BreadthFirst,
       displays: [
         {
-          container: $('#canvas'),
+          container: 'canvas',
           width: 500,
           height: 320,
           zooming: true,
@@ -65,35 +42,35 @@
     });
     this.items = this.collection.all('items');
     return this.items.each(__bind(function(index, item) {
-      var bar;
-      bar = new MovingBar({
+      return this.scene.add({
+        type: 'rect',
         x: 50 + 35 * index,
         y: 280,
         width: 30,
         height: 0,
-        interactive: true
+        interactive: true,
+        actors: [
+          {
+            type: 'label',
+            x: 15,
+            y: 15,
+            width: 30,
+            height: 20,
+            text: function() {
+              return item.identify();
+            },
+            textAlign: 'center',
+            fillStyle: 'black',
+            visible: function() {
+              return this.parent.active;
+            }
+          }
+        ]
       });
-      bar.add(new uv.Label({
-        x: 15,
-        y: 20,
-        width: 30,
-        height: 20,
-        text: function() {
-          return item.identify();
-        },
-        textAlign: 'center',
-        fillStyle: 'black',
-        background: true,
-        visible: function() {
-          return this.parent.active;
-        }
-      }));
-      return this.scene.add(bar);
     }, this));
   };
   Bars.prototype.render = function() {
     return this.scene.start();
   };
   window.Bars = Bars;
-  window.MovingBar = MovingBar;
 })();
