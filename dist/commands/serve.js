@@ -36,7 +36,7 @@
   });
   app.get(/^\/files\/(.+)$/, function(req, res) {
     res.writeHead(200, {
-      'Content-Type': 'text/javascript'
+      'Content-Type': req.params[0].indexOf('css') >= 0 ? 'text/css' : 'text/javascript'
     });
     res.write(fs.readFileSync(("" + (CWD) + "/" + (req.params[0])), 'utf-8'));
     return res.end();

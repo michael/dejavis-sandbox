@@ -78,7 +78,7 @@ app.get '/collections/:collection', (req, res) ->
 # Serves static files from the visualization directory
 app.get /^\/files\/(.+)$/, (req, res) ->
   res.writeHead(200, {
-    'Content-Type': 'text/javascript'
+    'Content-Type': if req.params[0].indexOf('css') >= 0 then 'text/css' else 'text/javascript'
   })
   res.write fs.readFileSync("visualizations/#{req.params[0]}", 'utf-8')
   res.end()
@@ -86,6 +86,7 @@ app.get /^\/files\/(.+)$/, (req, res) ->
 app.get '/:vis', (req, res) ->
   manifest = JSON.parse(fs.readFileSync("visualizations/#{req.params.vis}/manifest.json", 'utf-8'))
   manifest['dir'] = "/files/#{req.params.vis}/"
+  manifest['hosted'] = true
   res.send render('templates/show.mustache', manifest)
 
 app.listen 5001

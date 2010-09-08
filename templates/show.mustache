@@ -9,6 +9,11 @@
   {{/scripts}}
   
   <link href="/stylesheets/application.css" media="screen" rel="stylesheet" type="text/css" />
+  
+  <!-- loads additional styles specified in manifest.json -->
+  {{#styles}}
+  <link href="{{dir}}{{.}}" media="screen" rel="stylesheet" type="text/css" />
+  {{/styles}}
 </head>
 <body>
   <div id="header">
@@ -52,5 +57,20 @@
   <div id="sidebar">
     
   </div>
+  {{#hosted}}
+  <script type="text/javascript">
+
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-18430895-1']);
+    _gaq.push(['_trackPageview']);
+
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+
+  </script>
+  {{/hosted}}
 </body>
 </html>
