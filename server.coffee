@@ -10,6 +10,11 @@ Mustache = require './lib/mustache'
 
 visualizations = [
   {
+    name: 'linechart'
+    title: 'Linechart'
+    descr: 'An interactive, animated Linechart built with Unveil.js'    
+  },
+  {
     name: 'stacks'
     title: 'Stacks'
     descr: 'Visualizing groups of items using self-organizing stacks.'
